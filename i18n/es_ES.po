@@ -586,6 +586,12 @@ msgstr "❌ Operación cancelada."
 #. module: velardi_telegram_integration
 #: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
 #, python-format
+msgid "❌ Operation cancelled. Your registration has been reset."
+msgstr "❌ Operación cancelada. Tu registro ha sido reiniciado."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
 msgid "📋 View Tasks"
 msgstr "📋 Ver tareas"
 
@@ -739,3 +745,9 @@ msgstr "El mensaje de solicitud de teléfono no puede estar vacío cuando el tip
 #, python-format
 msgid "Phone request message must be valid JSON.\n"
 msgstr "El mensaje de solicitud de teléfono debe ser un JSON válido.\n"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "✅ Phone saved successfully!"
+msgstr "✅ ¡Teléfono guardado correctamente!"

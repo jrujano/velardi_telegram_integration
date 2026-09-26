@@ -98,15 +98,31 @@ class VelardiTelegramMixin(models.AbstractModel):
             _logger.warning("[Telegram] Update sin message ni callback. Ignorado.")
             return
         
-        if has_email and telegram_user.state == 'awaiting_email':
+        if telegram_user.state == 'awaiting_email':
+            email = self._extract_email(text)
+            
+            has_error = not email or not self._is_valid_email(email)
+
+            if has_error:
+                self._send_error_message(bot_config, telegram_user, chat_id)
+                return
+            
             return self._process_email(
                 bot_config, telegram_user, chat_id, message, text
             )
-        if (message.get("contact") and telegram_user.state == 'awaiting_phone')or (has_phone_number  and telegram_user.state == 'awaiting_phone'):
-            _logger.warning("[Telegram] Esperanod numeor de relefono.")
+
+        if telegram_user.state == 'awaiting_phone':
+            phone_number = message.get("contact", {}).get("phone_number") or message.get("text")
+            
+            has_error = not phone_number or not self._is_valid_phone(phone_number)
+            
+            if has_error:
+                self._send_error_message(bot_config, telegram_user, chat_id)
+                return
+
             return self._process_phone(
-                            bot_config, telegram_user, chat_id, message
-                        )
+                bot_config, telegram_user, chat_id, phone_number
+            )
             
         
         return
@@ -145,22 +161,23 @@ class VelardiTelegramMixin(models.AbstractModel):
             )
 
         elif text == '/cancel':
-            # Send cancellation message before deleting
-            bot_config.send_message("❌ Operation cancelled. Your data has been deleted.", chat_id)
-            
-            # Delete the telegram user record
+            bot_config.send_message(_("❌ Operation cancelled. Your registration has been reset."), chat_id)
+
             if telegram_user:
-                telegram_user.unlink()
-                _logger.info("[Telegram] User %s deleted via /cancel", chat_id)
-            
-            # Delete the chat using Telegram API
-            import requests
-            try:
-                url = f"https://api.telegram.org/bot{bot_config.bot_token}/deleteChat"
-                response = requests.post(url, json={"chat_id": chat_id}, timeout=10)
-                _logger.info("[Telegram] Delete chat response: %s", response.json())
-            except Exception as e:
-                _logger.warning("[Telegram] Could not delete chat %s: %s", chat_id, e)
+                partner = telegram_user.partner_id
+                if partner:
+                    partner.sudo().write({'telegram_chat_id': False})
+
+                telegram_user.sudo().write({
+                    'partner_id': False,
+                    'active': True,
+                    'state': 'idle',
+                    'email': False,
+                    'phone_number': False,
+                    'state_updated': fields.Datetime.now(),
+                    'awaiting_message_id': False,
+                })
+                _logger.info("[Telegram] User %s dissociated via /cancel", chat_id)
 
         else:
             # Comando personalizado → delegar
@@ -225,6 +242,36 @@ class VelardiTelegramMixin(models.AbstractModel):
         
     
     
+    def _send_error_message(self, bot_config, telegram_user, chat_id):
+        """Envía el mensaje de error de registro al usuario."""
+        error_message = bot_config.error_registration_message
+        error_message = error_message.replace("{{first_name}}", telegram_user.first_name)
+        error_message = error_message.replace("{{last_name}}", telegram_user.last_name)
+
+        if bot_config.error_registration_message_type == 'text':
+            bot_config.send_message(error_message, chat_id)
+        else:
+            payload = json.loads(error_message)
+            bot_config.send_message('', chat_id, payload)
+
+    def _send_success_message(self, bot_config, telegram_user, chat_id, linked_to=None):
+        """Envía el mensaje de registro exitoso al usuario."""
+        success_message = bot_config.successful_registration_message
+        success_message = success_message.replace("{{first_name}}", telegram_user.first_name)
+        success_message = success_message.replace("{{last_name}}", telegram_user.last_name)
+        success_message = success_message.replace("{{email}}", telegram_user.email or '')
+        success_message = success_message.replace("{{telegram_username}}", telegram_user.telegram_username or '')
+
+        if bot_config.welcome_message_type == 'text':
+            if linked_to:
+                success_message = f"{success_message}\n\n<i>👤 Linked to: <b>{linked_to}</b></i>"
+            bot_config.send_message(success_message, chat_id)
+        else:
+            payload = json.loads(success_message)
+            if linked_to:
+                payload['text'] = payload.get('text', '') + f"\n\n<i>👤 Linked to: <b>{linked_to}</b></i>"
+            bot_config.send_message('', chat_id, payload)
+
     def _handle_callback(self, bot_config, update_data, telegram_user):
         update_id = update_data.get("update_id")              # Para logs / idempotencia
         callback = update_data.get("callback_query")  
@@ -246,6 +293,7 @@ class VelardiTelegramMixin(models.AbstractModel):
 
         if data == "start_registration":
             self._start_registration(bot_config, telegram_user, chat_id, message_id)
+        
 
         
     # TODO: REvisar comportamiento
@@ -378,8 +426,8 @@ class VelardiTelegramMixin(models.AbstractModel):
         """
         chat_id = str(chat_id)
 
-        # 1. Buscar si ya existe
-        telegram_user = self.env['velardi.telegram.user'].sudo().search([
+        # 1. Buscar si ya existe (incluyendo inactivos)
+        telegram_user = self.env['velardi.telegram.user'].sudo().with_context(active_test=False).search([
             ('chat_id', '=', chat_id),
             ('config_id', '=', bot_config.id),
         ], limit=1)
@@ -412,7 +460,7 @@ class VelardiTelegramMixin(models.AbstractModel):
             chat_id, bot_config.name
         )
 
-        partner = self._create_partner_from_telegram(from_user)
+        partner = self.env['res.partner']._create_partner_from_telegram(from_user, chat_id)
         telegram_user = self.env['velardi.telegram.user'].sudo().create({
             'partner_id': partner.id,
             'config_id': bot_config.id,
@@ -422,45 +470,13 @@ class VelardiTelegramMixin(models.AbstractModel):
             'telegram_username': from_user.get('username', False),
             'language_code': from_user.get('language_code', False),
             'state': 'new',
+            'active':False,
             'state_updated': fields.Datetime.now(),
             'last_interaction': fields.Datetime.now(),
         })
 
         return telegram_user
 
-
-    def _create_partner_from_telegram(self, from_user):
-        """
-        Crea un res.partner a partir de los datos de un usuario de Telegram.
-
-        :param from_user: dict con 'first_name', 'last_name', 'username', etc.
-        :return: record de res.partner
-        """
-        first_name = (from_user.get('first_name') or '').strip()
-        last_name = (from_user.get('last_name') or '').strip()
-        username = from_user.get('username')
-
-        # Construir nombre completo
-        if first_name or last_name:
-            full_name = f"{first_name} {last_name}".strip()
-        elif username:
-            full_name = f"@{username}"
-        else:
-            full_name = f"Telegram {from_user.get('id', 'Desconocido')}"
-
-        vals = {
-            'name': full_name,
-            'is_company': False,
-        }
-
-    
-        if username:
-            # Campo estándar de Odoo 18 para redes sociales / username
-            # Si no existe en tu versión, usa un Char personalizado
-            vals['complete_name'] = f"Telegram: @{username}"
-
-        return self.env['res.partner'].sudo().create(vals)
-    
 
     def _start_registration(self, bot_config, telegram_user, chat_id, message_id):
         # 1. Quitar solo los botones (el texto queda igual)
@@ -582,144 +598,84 @@ class VelardiTelegramMixin(models.AbstractModel):
         return 'unknown', update_data
     
     def _process_email(self, bot_config, telegram_user, chat_id, message, text):
-        # 1. Validar que la respuesta sea al mensaje correcto
-        reply_to = message.get("reply_to_message")
-        expected_msg_id = telegram_user.awaiting_message_id
+        try:
+            email = self._extract_email(text)
+            # Verificar duplicado
+            existente = self.env['velardi.telegram.user'].sudo().search([
+                ('email', '=', email),
+                ('config_id', '=', bot_config.id),
+                ('id', '!=', telegram_user.id),
+            ], limit=1)
 
-        if reply_to and expected_msg_id:
-            reply_msg_id = str(reply_to.get("message_id", ""))
-            if reply_msg_id != str(expected_msg_id):
-                bot_config.send_message('⚠️ Please reply directly to the message where I asked for your email.', chat_id)     
+            if existente:
+                self._send_error_message(bot_config, telegram_user, chat_id)
                 return
 
-        # 2. Extraer el email (tolerante)
-        email = self._extract_email(text)
-        has_error = False
-        if not email:
-            has_error = True
+            state_user = 'registered' if not bot_config.enable_phone_registration else 'awaiting_phone'
+            active_user = True if not bot_config.enable_phone_registration else False
+            # 5. Guardar email y cambiar estado
+            telegram_user.write({
+                'email': email,
+                'state': state_user,
+                'active': active_user,
+                'state_updated': fields.Datetime.now(),
+                'awaiting_message_id': False,
+            })
 
-        # 3. Validar formato estricto
-        if not self._is_valid_email(email):
-            has_error = True
+            # 6. Vincular con res.users si existe coincidencia
+            odoo_user = self.env['res.users']._link_odoo_user_by_email(telegram_user, email)
 
-        # 4. Verificar duplicado
-        existente = self.env['velardi.telegram.user'].sudo().search([
-            ('email', '=', email),
-            ('config_id', '=', bot_config.id),
-            ('id', '!=', telegram_user.id),
-        ], limit=1)
-
-        if existente:
-            has_error = True
-
-        if has_error:
-            if bot_config.error_registration_message_type == 'text':
-                error_text = bot_config.error_registration_message
-                error_text = error_text.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name)
-                bot_config.send_message(error_text, chat_id)
+            if not bot_config.enable_phone_registration:
+                linked_to = odoo_user.name if odoo_user else None
+                self._send_success_message(bot_config, telegram_user, chat_id, linked_to)
             else:
-                error_message = bot_config.error_registration_message
-                error_message = error_message.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name)
-                payload= json.loads(error_message)
-                bot_config.send_message('', chat_id, payload)    
-            return
+                self._send_phone_request_message(bot_config, chat_id, telegram_user, 'message_id')
 
-        state_user = 'registered' if not bot_config.enable_phone_registration else 'awaiting_phone'
-        # 5. Guardar email y cambiar estado
-        telegram_user.write({
-            'email': email,
-            'state': state_user,
-            'state_updated': fields.Datetime.now(),
-            'awaiting_message_id': False,
-        })
-
-        # 6. Vincular con res.users si existe coincidencia
-        odoo_user = self._link_odoo_user_by_email(telegram_user, email)
-
-        if not bot_config.enable_phone_registration:
-            if bot_config.welcome_message_type == 'text':
-                text = bot_config.successful_registration_message
-                text = text.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name).replace("{{email}}",telegram_user.email).replace("{{telegram_username}}",telegram_user.telegram_username)
-                if odoo_user:
-                    text = f"{text}\n\n<i>👤 Linked to: <b>{odoo_user.name}</b><i>"
-                bot_config.send_message(text, chat_id)
-            else:
-                registration_message = bot_config.successful_registration_message
-                registration_message = registration_message.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name).replace("{{email}}",telegram_user.email).replace("{{telegram_username}}",telegram_user.telegram_username)
-                payload= json.loads(registration_message)
-
-                if odoo_user:
-                    payload['text'] += f"\n\n<i>👤 Linked to: <b>{odoo_user.name}</b></i>"
-
-                bot_config.send_message('', chat_id, payload)    
-           
-        else:
-            self._send_phone_request_message(bot_config, chat_id, telegram_user, 'message_id')
-
-        _logger.info(
-            "[Telegram] Usuario chat_id=%s registrado con email=%s (Odoo user: %s)",
-            chat_id, email, odoo_user.name if odoo_user else "ninguno"
-        )
+            _logger.info(
+                "[Telegram] Usuario chat_id=%s registrado con email=%s (Odoo user: %s)",
+                chat_id, email, odoo_user.name if odoo_user else "ninguno"
+            )
+        except Exception as e:
+            telegram_user.write({
+                'email': email,
+                'state': 'awaiting_email',
+                'state_updated': fields.Datetime.now(),
+                'awaiting_message_id': False,
+            })
         return
 
 
 
-    def _process_phone(self, bot_config, telegram_user, chat_id, message):
-        _logger.info( "[Telegram] Usuario message=%s ", message )
-        phone_number = message.get("contact", {}).get("phone_number") or message.get("text")
-        _logger.info( "[Telegram] Usuario phone_number=%s ",phone_number )
+    def _process_phone(self, bot_config, telegram_user, chat_id, phone_number):
+        try:
+            if phone_number and telegram_user.state=='awaiting_phone':
+                telegram_user.write({
+                        'phone_number': phone_number,
+                        'state': 'registered',
+                        'state_updated': fields.Datetime.now(),
+                })
+                linked_to = telegram_user.email if telegram_user.email else None
+                payload={"text": _("✅ Phone saved successfully!"),
+                                "reply_markup": {
+                                    "remove_keyboard": True
+                                    }
+                                }
+                bot_config.send_message('',telegram_user.chat_id,payload)
 
-        phone_number = self._extract_phone(phone_number)
-        has_error = False
+                self._send_success_message(bot_config, telegram_user, chat_id, linked_to)
+                _logger.info(
+                    "[Telegram] Usuario chat_id=%s registrado con phone_number=%s",
+                    chat_id, phone_number
+                )
+            
 
-        if not phone_number:
-            has_error = True
-        if not self._is_valid_phone(phone_number):
-            has_error = True
-
-        if has_error:
-            if bot_config.error_registration_message_type == 'text':
-                error_text = bot_config.error_registration_message
-                error_text = error_text.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name)
-                bot_config.send_message(error_text, chat_id)
-            else:
-                error_message = bot_config.error_registration_message
-                error_message = error_message.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name)
-                payload= json.loads(error_message)
-                bot_config.send_message('', chat_id, payload)    
-            return
-
-        #  TODO: 4. Quitar el reply keyboard tras capturar el teléfono{
-        #  "chat_id": "TU_CHAT_ID",
-        # "text": "✅ ¡Teléfono guardado correctamente!",
-        # "reply_markup": {
-        #  "remove_keyboard": true
-        #  }}
-        if phone_number:
+        except Exception as e:
             telegram_user.write({
-                    'phone_number': phone_number,
-                    'state': 'registered',
-                    'state_updated': fields.Datetime.now(),
+                'state': 'awaiting_phone',
+                'state_updated': fields.Datetime.now(),
+                'awaiting_message_id': False,
             })
-            if bot_config.welcome_message_type == 'text':
-                text = bot_config.successful_registration_message
-                text = text.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name).replace("{{email}}",telegram_user.email).replace("{{telegram_username}}",telegram_user.telegram_username)
-                if telegram_user.email:
-                    text = f"{text}\n\n<i>👤 Linked to: <b>{telegram_user.email}</b><i>"
-                bot_config.send_message(text, chat_id)
-            else:
-                registration_message = bot_config.successful_registration_message
-                registration_message = registration_message.replace("{{first_name}}",telegram_user.first_name).replace("{{last_name}}",telegram_user.last_name).replace("{{email}}",telegram_user.email).replace("{{telegram_username}}",telegram_user.telegram_username)
-                payload= json.loads(registration_message)
-
-                if telegram_user.email:
-                    payload['text'] += f"\n\n<i>👤 Linked to: <b>{telegram_user.email}</b></i>"
-
-                bot_config.send_message('', chat_id, payload)    
-            _logger.info(
-                        "[Telegram] Usuario chat_id=%s registrado con phone_number=%s",
-                chat_id, phone_number
-            )
+        return
     def _extract_email(self, raw_text):
         """
         Extrae un email del texto, tolerante a frases alrededor.
@@ -783,6 +739,7 @@ class VelardiTelegramMixin(models.AbstractModel):
         """
         Extracts a phone number from text, tolerant to surrounding phrases.
         Returns the clean phone number or None if not found.
+        Accepts numbers with or without '+' prefix.
         """
         if not raw_text:
             _logger.warning("[Telegram] _extract_phone: empty text provided")
@@ -805,13 +762,10 @@ class VelardiTelegramMixin(models.AbstractModel):
         text = text.replace('-', '').replace(' ', '').replace('(', '').replace(')', '')
         text = text.replace('.', '').replace(',', '').strip()
 
-        # Try to extract with regex - international format
+        # Try to extract with regex - with or without +
         match = re.search(r'\+?\d{7,15}', text)
         if match:
             phone = match.group(0)
-            # Ensure it starts with +
-            if not phone.startswith('+'):
-                phone = '+' + phone
             return phone
 
         _logger.warning("[Telegram] _extract_phone: no valid phone found in text '%s'", raw_text[:50])
@@ -821,57 +775,27 @@ class VelardiTelegramMixin(models.AbstractModel):
         """
         Strictly validates a phone number format.
         Checks length, country code, and digit structure.
+        Accepts numbers with or without '+' prefix.
         """
         if not phone:
             _logger.warning("[Telegram] _is_valid_phone: empty phone number")
             return False
 
-        # Remove all non-digit characters except leading +
-        cleaned = re.sub(r'[^\d+]', '', phone)
-
-        # Must start with +
-        if not cleaned.startswith('+'):
-            _logger.warning("[Telegram] _is_valid_phone: phone '%s' does not start with '+'", phone)
-            return False
-
-        # Remove the +
-        digits = cleaned[1:]
+        # Remove all non-digit characters
+        digits = re.sub(r'\D', '', phone)
 
         # Length check: 7-15 digits (ITU-T E.164 standard)
         if len(digits) < 7 or len(digits) > 15:
             _logger.warning("[Telegram] _is_valid_phone: phone '%s' has invalid length (%d digits)", phone, len(digits))
             return False
 
-        # All remaining characters must be digits
+        # All characters must be digits
         if not digits.isdigit():
             _logger.warning("[Telegram] _is_valid_phone: phone '%s' contains non-digit characters", phone)
             return False
 
         return True
-    
-    def _link_odoo_user_by_email(self, telegram_user, email):
-        """
-        Busca un res.users con ese email y lo vincula al telegram.user.
-        Retorna el res.users encontrado o None.
-        """
-        odoo_user = self.env['res.users'].sudo().search([
-            ('email', '=', email),
-            ('active', '=', True),
-        ], limit=1)
 
-        if odoo_user:
-            telegram_user.write({'user_id': odoo_user.id})
-            _logger.info(
-                "[Telegram] Vinculado chat_id=%s con res.users=%s (ID %s)",
-                telegram_user.chat_id, odoo_user.name, odoo_user.id
-            )
-        else:
-            _logger.info(
-                "[Telegram] No se encontró res.users con email=%s. Sin vincular.",
-                email
-            )
-
-        return odoo_user
     def custom_log(self, message, level='info'):
             self.env['ir.logging'].sudo().create({
                 'name': 'Telegram Custom SafeEval Script',
