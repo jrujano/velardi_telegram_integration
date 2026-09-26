@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <record id="velardi_telegram_command_form_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.command.form</field>
+        <field name="model">velardi.telegram.command</field>
+        <field name="arch" type="xml">
+             <form>
+                <header>
+                     <button name="action_register_commands" 
+                        type="object"
+                        string="Register Command Telegram" 
+                        class="btn-primary"
+                        help="Registra el comando en el Bot de Telegram"
+                        invisible="not id"
+                        readonly="not active_bot"
+                    />
+                    <button name="action_remove_command"
+                        type="object"
+                        string="Remove Command Telegram"
+                        class="btn-danger"
+                        confirm="¿Estás seguro de que quieres eliminar este comando del BOT? Esta acción es irreversible."
+                        help="Puede volver a permanentemente este registro del sistema."
+                        />
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="command"/>
+                            <field name="bot_config_id"/>
+                            <field name="description"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="active_bot" widget="boolean_toggle" readonly="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Definition of command" name="definition_command">
+                                <field name="code" widget="code"
+                                   options="{'mode': 'python'}"
+                                   placeholder="Enter Python code here."/>
+                            </page>
+                            <page string="Help" name="help">
+                                <p>The following variables are available in your code:</p>
+                                <group string="Odoo">
+                                    <ul>
+                                        <li><code>env</code>: Odoo environment (user_env)</li>
+                                        <li><code>user</code>: Current logged-in user</li>
+                                        <li><code>self</code>: Current user record (self_user)</li>
+                                    </ul>
+                                </group>
+                                <group string="Telegram">
+                                    <ul>
+                                        <li><code>bot_config</code>: Bot configuration record (velardi.telegram.config)</li>
+                                        <li><code>bot_token</code>: Telegram bot token (from bot_config.bot_token)</li>
+                                    </ul>
+                                </group>
+                                <group string="Logging">
+                                    <ul>
+                                        <li><code>_logger</code>: Logger instance (_logger.info, _logger.error, etc.)</li>
+                                        <li><code>log</code>: Custom logging function (log(message))</li>
+                                    </ul>
+                                </group>
+                                <group string="Python Libraries">
+                                    <ul>
+                                        <li><code>datetime</code>: Python datetime class (datetime.now(), datetime.strptime, etc.)</li>
+                                        <li><code>date</code>: Python date class (date.today(), etc.)</li>
+                                        <li><code>relativedelta</code>: dateutil.relativedelta (relativedelta(months=3), etc.)</li>
+                                        <li><code>dateutil_parser</code>: dateutil.parser.parse (dateutil_parser("2026-01-01"), etc.)</li>
+                                        <li><code>timezone</code>: Timezone utilities</li>
+                                        <li><code>timedelta</code>: Python timedelta class (timedelta(days=7), etc.)</li>
+                                    </ul>
+                                </group>
+                                <group string="Utilities">
+                                    <ul>
+                                        <li><code>float_compare()</code>: Compare floats with precision (float_compare(val1, val2, precision_digits=2))</li>
+                                        <li><code>UserError</code>: Exception class for raising user-facing warning messages</li>
+                                        <li><code>requests</code>: HTTP requests library (requests.get, requests.post, etc.)</li>
+                                        <li><code>html_escape</code>: HTML escape function for safe text output</li>
+                                    </ul>
+                                </group>
+                                <group string="Example">
+                                    <p>Example: Send a message via the bot</p>
+                                    <pre style='white-space: pre-wrap'>
+proyecto = env['project.project'].sudo().search([('name', '=', 'Proyectos Web')], limit=1)
+if proyecto:
+    log(f"Proyecto encontrado: {proyecto.name} (ID: {proyecto.id})")
+    
+    
+    tareas_del_proyecto = proyecto.task_ids.sudo()
+
+    if tareas_del_proyecto:
+        _logger.info("\nTask del proyecto:")
+        for tarea in tareas_del_proyecto:
+            
+            if 'user_ids' in env['project.task']._fields:
+                nombres_usuarios = tarea.user_ids.mapped('name')
+            elif 'user_id' in env['project.task']._fields:
+                nombres_usuarios = tarea.user_id.mapped('name')
+            else:
+                nombres_usuarios = []
+
+            asignados = ", ".join(nombres_usuarios) if nombres_usuarios else "Nadie"
+            estado = tarea.stage_id.name if tarea.stage_id else "Sin estado"
+
+            _logger.info(f"- Nombre: {tarea.name}, Estado: {estado}, Asignado a: {asignados}")
+    else:
+        _logger.info("El proyecto no tiene tareas asociadas.")
+else:
+    _logger.info("No se encontró ningún proyecto con el nombre 'Proyectos Web'.")
+                                    </pre>
+                                </group>
+                            </page>
+                        </notebook>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="velardi_telegram_command_list_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.command.list</field>
+        <field name="model">velardi.telegram.command</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="command"/>
+                <field name="bot_config_id"/>
+                <field name="active"/>
+                <field name="active_bot" readonly="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="velardi_telegram_command_action" model="ir.actions.act_window">
+        <field name="name">Telegram Commands</field>
+        <field name="res_model">velardi.telegram.command</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

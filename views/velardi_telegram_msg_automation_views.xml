@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="velardi_telegram_msg_automation_form_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.msg.automation.form</field>
+        <field name="model">velardi.telegram.msg.automation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test" string="Send Test" type="object"
+                            class="btn-primary" invisible="not active"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Automation Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Settings">
+                            <field name="config_id" required="1"/>
+                            <field name="model_id" required="1"/>
+                            <field name="model_name" invisible="1"/>
+                            <field name="trigger" required="1"/>
+                            <field name="type" required="1"/>
+                            <field name="chat_id"
+                                   placeholder="Override chat ID (optional)"/>
+                        </group>
+                        <group string="Status">
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="last_run"/>
+                            <field name="run_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Conditions" name="conditions">
+                            <group>
+                                <field name="filter_domain" nolabel="1"
+                                       placeholder="[('state','=','sale')]"/>
+                            </group>
+                        </page>
+                        <page string="Message Template" name="message"
+                              invisible="type != 'template'">
+                            <group>
+                                <field name="message_template" nolabel="1"
+                                       placeholder="🔔 New Order&#10;📋 Order: ${name}&#10;👤 Customer: ${partner_id.name}&#10;💰 Total: ${amount_total}&#10;&#10;📦 Items:&#10;{% for line in order_line %}&#10;- ${line.product_id.name} x ${line.product_uom_qty} = ${line.price_subtotal}&#10;{% endfor %}"/>
+                            </group>
+                        </page>
+                        <page string="Code" name="code"
+                              invisible="type != 'code'">
+                            <field name="code" widget="code"
+                                   options="{'mode': 'python'}"
+                                   placeholder="Enter Python code here."/>
+                        </page>
+                        <page string="Help" name="help"
+                              invisible="type != 'code'">
+                            <p>The following variables can be used:</p>
+                            <ul>
+                                <li><code>env</code>: environment on which the action is triggered</li>
+                                <li><code>model</code>: model of the record on which the action is triggered; is a void recordset</li>
+                                <li><code>record</code>: record on which the action is triggered; may be void</li>
+                                <li><code>records</code>: recordset of all records on which the action is triggered in multi mode; may be void</li>
+                                <li><code>time</code>, <code>datetime</code>, <code>dateutil</code>, <code>timezone</code>: useful Python libraries</li>
+                                <li><code>float_compare()</code>: utility function to compare floats based on a specific precision</li>
+                                <li><code>log(message, level='info')</code>: logging function to record debug information in <code>ir.logging</code> table</li>
+                                <li><code>_logger.info(message)</code>: logger to emit messages in server logs</li>
+                                <li><code>UserError</code>: exception class for raising user-facing warning messages</li>
+                                <li><code>Command</code>: x2many commands namespace</li>
+                                <li>To return an action, assign: <code>action = {...}</code></li>
+                            </ul>
+                            <div>
+                                <p>Example of Python code:</p>
+                                    <pre style='white-space: pre-wrap'>
+
+log(f"Iniciando procesamiento para el pedido {record.name}")
+record = records[0] if records else None
+
+if not record:
+    raise UserError("No se encontró ningún pedido de venta en 'records' para ejecutar esta acción.")
+
+
+tareas_creadas = []
+
+for line in record.order_line:
+    proyecto = env['project.project'].search([('name', '=', 'Proyectos Web')], limit=1)
+    
+    if proyecto:
+        fecha_limite = date.today() + timedelta(days=7)
+        
+        nueva_tarea = env['project.task'].create({
+            'name': f"Servicio contratado: {line.product_id.name} ({record.name})",
+            'project_id': proyecto.id,
+            'partner_id': record.partner_id.id,
+            'date_deadline': fecha_limite,
+            'description': f"Tarea generada automáticamente desde el pedido {record.name}.",
+        })
+        tareas_creadas.append(nueva_tarea.name)
+
+
+if tareas_creadas:
+    chat_id = self.chat_id or self.config_id.default_chat_id
+    message = (
+        "Acción Automática:"
+        "Se crearon las siguientes tareas:\n"
+        + "\n".join(f"• {t}" for t in tareas_creadas)
+    )
+
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML",
+        "reply_markup": {              
+            "inline_keyboard": [      
+                [{'text': 'Opción A', 'callback_data': 'opcion_a'}],
+                [{'text': 'Opción B', 'callback_data': 'opcion_b'}],
+                [{'text': 'Hablar con soporte', 'callback_data': 'soporte'}]
+            ]
+        }
+    }
+    # Metodo POST/Request
+    url =f"https://api.telegram.org/bot{self.config_id.bot_token}/sendMessage"
+    _logger.info("Ejecutando url : %s", url)
+    response = requests.post(url,
+        json=payload,
+        timeout=15
+    )
+    # Metodo nativo
+    # Intenta obtener la respuesta estructurada de Telegram
+    # res_data = response.json() if response.content else {}
+    chat_id = self.chat_id or self.config_id.default_chat_id
+    self.config_id.send_message(message, chat_id=chat_id)
+    record.message_post(body=message)
+
+    
+                                    </pre>
+                            </div>
+                        </page>
+                
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="velardi_telegram_msg_automation_list_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.msg.automation.list</field>
+        <field name="model">velardi.telegram.msg.automation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="config_id"/>
+                <field name="model_id"/>
+                <field name="trigger"/>
+                <field name="active"/>
+                <field name="run_count"/>
+                <field name="last_run"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="velardi_telegram_msg_automation_action" model="ir.actions.act_window">
+        <field name="name">Telegram Automations</field>
+        <field name="res_model">velardi.telegram.msg.automation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

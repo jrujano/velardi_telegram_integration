@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vel_telegram_config_api,velardi.telegram.config,model_velardi_telegram_config,group_velardi_telegram_api,1,1,1,1
+access_vel_telegram_config_admin,velardi.telegram.config.access.admin,model_velardi_telegram_config,base.group_system,1,1,1,1
+access_vel_telegram_msg_automation_api,velardi.telegram.msg.automation,model_velardi_telegram_msg_automation,group_velardi_telegram_api,1,1,1,1
+access_vel_telegram_msg_automation_admin,velardi.telegram.msg.automation.access.admin,model_velardi_telegram_msg_automation,base.group_system,1,1,1,1
+access_vel_telegram_notification_api,velardi.telegram.notification,model_velardi_telegram_notification,group_velardi_telegram_api,1,1,1,1
+access_vel_telegram_notification_admin,velardi.telegram.notification.access.admin,model_velardi_telegram_notification,base.group_system,1,1,1,1
+access_vel_telegram_command_api,velardi.telegram.command,model_velardi_telegram_command,group_velardi_telegram_api,1,1,1,1
+access_vel_telegram_command_admin,velardi.telegram.command.access.admin,model_velardi_telegram_command,base.group_system,1,1,1,1
+access_vel_telegram_user_api,velardi.telegram.user,model_velardi_telegram_user,group_velardi_telegram_api,1,1,1,1
+access_vel_telegram_user_admin,velardi.telegram.user.access.admin,model_velardi_telegram_user,base.group_system,1,1,1,1

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form View -->
+    <record id="velardi_telegram_user_form_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.user.form</field>
+        <field name="model">velardi.telegram.user</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="first_name" placeholder="First Name"/>
+                            <field name="last_name" placeholder="Last Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Telegram">
+                            <field name="chat_id"/>
+                            <field name="telegram_username"/>
+                            <field name="language_code"/>
+                            <field name="email"/>
+                            <field name="phone_number"/>
+                        </group>
+                        <group string="Odoo">
+                            <field name="user_id"/>
+                            <field name="partner_id"/>
+                            <field name="config_id"/>
+                            <field name="state" widget="badge"
+                                   decoration-success="state == 'registered'"
+                                   decoration-warning="state == 'awaiting_email'"
+                                   decoration-danger="state == 'new'"
+                                   decoration-info="state == 'idle'"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Fechas">
+                            <field name="last_interaction"/>
+                            <field name="state_updated"/>
+                        </group>
+                        <group string="Sistema">
+                            <field name="awaiting_message_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="velardi_telegram_user_list_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.user.list</field>
+        <field name="model">velardi.telegram.user</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="first_name"/>
+                <field name="last_name"/>
+                <field name="telegram_username"/>
+                <field name="chat_id"/>
+                <field name="email"/>
+                <field name="phone_number"/>
+                <field name="user_id"/>
+                <field name="partner_id"/>
+                <field name="config_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'registered'"
+                       decoration-warning="state == 'awaiting_email'"
+                       decoration-danger="state == 'new'"
+                       decoration-info="state == 'idle'"/>
+                <field name="last_interaction"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="velardi_telegram_user_search_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.user.search</field>
+        <field name="model">velardi.telegram.user</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="first_name"/>
+                <field name="last_name"/>
+                <field name="telegram_username"/>
+                <field name="chat_id"/>
+                <field name="email"/>
+                <field name="phone_number"/>
+                <field name="user_id"/>
+                <field name="partner_id"/>
+                <field name="config_id"/>
+                <filter string="Activos" name="active"
+                        domain="[('active', '=', True)]"/>
+                <filter string="Inactivos" name="inactive"
+                        domain="[('active', '=', False)]"/>
+                <filter string="Registrados" name="registered"
+                        domain="[('state', '=', 'registered')]"/>
+                <filter string="Pendientes" name="pending"
+                        domain="[('state', 'in', ('new', 'awaiting_email'))]"/>
+                <group expand="0" string="Agrupar">
+                    <filter string="Estado" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Bot" name="group_config"
+                            context="{'group_by': 'config_id'}"/>
+                    <filter string="Usuario Odoo" name="group_user"
+                            context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="velardi_telegram_user_action" model="ir.actions.act_window">
+        <field name="name">Telegram Users</field>
+        <field name="res_model">velardi.telegram.user</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="velardi_telegram_user_search_view"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+</odoo>

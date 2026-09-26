@@ -1,0 +1,741 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * velardi_telegram_integration
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: velardi_telegram_integration 18.0.1.8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-23 21:00+0000\n"
+"PO-Revision-Date: 2026-09-23 21:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish (Spain)\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: velardi_telegram_integration
+#: model:ir.module.category,name:velardi_telegram_integration.module_velardi_telegram_category
+msgid "Velardi Telegram"
+msgstr "Velardi Telegram"
+
+#. module: velardi_telegram_integration
+#: model:res.groups,name:velardi_telegram_integration.group_velardi_telegram_api
+msgid "Velardi Telegram Group"
+msgstr "Grupo Velardi Telegram"
+
+#. module: velardi_telegram_integration
+#: model:res.groups,comment:velardi_telegram_integration.group_velardi_telegram_api
+msgid "Group for users with access to the Velardi Telegram Integration."
+msgstr "Grupo de usuarios con acceso a la Integración de Velardi Telegram."
+
+#. module: velardi_telegram_integration
+#: model:ir.rule,name:velardi_telegram_integration.velardi_telegram_config_rule
+msgid "Velardi Telegram Config: Multi-company"
+msgstr "Configuración Velardi Telegram: Multi-empresa"
+
+#. module: velardi_telegram_integration
+#: model:ir.rule,name:velardi_telegram_integration.velardi_telegram_command_rule
+msgid "Velardi Telegram Command: Multi-company"
+msgstr "Comando Velardi Telegram: Multi-empresa"
+
+#. module: velardi_telegram_integration
+#: model:ir.rule,name:velardi_telegram_integration.velardi_telegram_notification_rule
+msgid "Velardi Telegram Notification: Multi-company"
+msgstr "Notificación Velardi Telegram: Multi-empresa"
+
+#. module: velardi_telegram_integration
+#: model:ir.rule,name:velardi_telegram_integration.velardi_telegram_msg_automation_rule
+msgid "Velardi Telegram Msg Automation: Multi-company"
+msgstr "Automatización de Mensajes Velardi Telegram: Multi-empresa"
+
+#. module: velardi_telegram_integration
+#: model:ir.actions.act_window,name:velardi_telegram_integration.velardi_telegram_config_action
+msgid "Telegram Configurations"
+msgstr "Configuraciones de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.actions.act_window,name:velardi_telegram_integration.velardi_telegram_msg_automation_action
+msgid "Telegram Automations"
+msgstr "Automatizaciones de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.actions.act_window,name:velardi_telegram_integration.velardi_telegram_notification_action
+msgid "Telegram Notifications"
+msgstr "Notificaciones de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.actions.act_window,name:velardi_telegram_integration.velardi_telegram_command_action
+msgid "Telegram Commands"
+msgstr "Comandos de Telegram"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "No Telegram chat ID set for bot '%s'."
+msgstr "No se ha configurado el ID de chat de Telegram para el bot '%s'."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Simulated"
+msgstr "Simulado"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Error: %s"
+msgstr "Error: %s"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Could not reach Telegram: %s"
+msgstr "No se pudo conectar con Telegram: %s"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Telegram error: %s"
+msgstr "Error de Telegram: %s"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Sent"
+msgstr "Enviado"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Test alert from Odoo (%s)."
+msgstr "Alerta de prueba desde Odoo (%s)."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Telegram"
+msgstr "Telegram"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Test message sent (status: %s)."
+msgstr "Mensaje de prueba enviado (estado: %s)."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Webhook Registrado"
+msgstr "Webhook Registrado"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "La URL del webhook se ha registrado correctamente."
+msgstr "La URL del webhook se ha registrado correctamente."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Error al registrar webhook: %s"
+msgstr "Error al registrar webhook: %s"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Error de conexión: %s"
+msgstr "Error de conexión: %s"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_command.py:0
+#, python-format
+msgid "Command '%s' registered successfully."
+msgstr "Comando '%s' registrado exitosamente."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_command.py:0
+#, python-format
+msgid "Command '%s' unregistered successfully."
+msgstr "Comando '%s' desregistrado exitosamente."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_command.py:0
+#, python-format
+msgid "Command '%s' was not found in Telegram."
+msgstr "El comando '%s' no fue encontrado en Telegram."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_msg_automation.py:0
+#, python-format
+msgid "No records found in model '%s' to test."
+msgstr "No se encontraron registros en el modelo '%s' para probar."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_msg_automation.py:0
+#, python-format
+msgid "Telegram Automation"
+msgstr "Automatización de Telegram"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_msg_automation.py:0
+#, python-format
+msgid "Test sent using record '%s'."
+msgstr "Prueba enviada usando el registro '%s'."
+
+#. module: velardi_telegram_integration
+#: model:ir.ui.menu,name:velardi_telegram_integration.velardi_telegram_menu_root
+msgid "Velardi Telegram"
+msgstr "Velardi Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.ui.menu,name:velardi_telegram_integration.velardi_telegram_menu_automation
+msgid "Automations"
+msgstr "Automatizaciones"
+
+#. module: velardi_telegram_integration
+#: model:ir.ui.menu,name:velardi_telegram_integration.velardi_telegram_menu_notification
+msgid "Notifications"
+msgstr "Notificaciones"
+
+#. module: velardi_telegram_integration
+#: model:ir.ui.menu,name:velardi_telegram_integration.velardi_telegram_menu_config
+msgid "Configuration"
+msgstr "Configuración"
+
+#. module: velardi_telegram_integration
+#: model:ir.ui.menu,name:velardi_telegram_integration.velardi_telegram_menu_commands
+msgid "Commands"
+msgstr "Comandos"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_command_form_view
+msgid "Register Command Telegram"
+msgstr "Registrar Comando en Telegram"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_command_form_view
+msgid "Remove Command Telegram"
+msgstr "Eliminar Comando de Telegram"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_command_form_view
+msgid "Definition of command"
+msgstr "Definición del comando"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_command_form_view
+msgid "Help"
+msgstr "Ayuda"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_command_form_view
+msgid "Python Libraries"
+msgstr "Librerías de Python"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_command_form_view
+msgid "Utilities"
+msgstr "Utilidades"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_command_form_view
+msgid "Example"
+msgstr "Ejemplo"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "Send Test"
+msgstr "Enviar Prueba"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "Register Webhook Test"
+msgstr "Registrar Prueba de Webhook"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "Bot Settings"
+msgstr "Configuración del Bot"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "Options"
+msgstr "Opciones"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "Message sent when a user completes registration successfully."
+msgstr "Mensaje enviado cuando un usuario completa su registro exitosamente."
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "Message sent when a registration attempt fails."
+msgstr "Mensaje enviado cuando un intento de registro falla."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "⚠️ Por favor, responde directamente al mensaje donde te pedí el email."
+msgstr "⚠️ Por favor, responde directamente al mensaje donde te pedí el email."
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__email_request_message
+msgid "Email Request Message"
+msgstr "Mensaje de solicitud de email"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__email_request_message_type
+msgid "Email Request Message Type"
+msgstr "Tipo de mensaje de solicitud de email"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Welcome message cannot be empty when type is 'Payload JSON'."
+msgstr "El mensaje de bienvenida no puede estar vacío cuando el tipo es 'Payload JSON'."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Welcome message must be valid JSON.\n"
+msgstr "El mensaje de bienvenida debe ser un JSON válido.\n"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Successful registration message cannot be empty when type is 'Payload JSON'."
+msgstr "El mensaje de registro exitoso no puede estar vacío cuando el tipo es 'Payload JSON'."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Successful registration message must be valid JSON.\n"
+msgstr "El mensaje de registro exitoso debe ser un JSON válido.\n"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Error message cannot be empty when type is 'Payload JSON'."
+msgstr "El mensaje de error no puede estar vacío cuando el tipo es 'Payload JSON'."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Error message must be valid JSON.\n"
+msgstr "El mensaje de error debe ser un JSON válido.\n"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Email request message cannot be empty when type is 'Payload JSON'."
+msgstr "El mensaje de solicitud de email no puede estar vacío cuando el tipo es 'Payload JSON'."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Email request message must be valid JSON.\n"
+msgstr "El mensaje de solicitud de email debe ser un JSON válido.\n"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_msg_automation_form_view
+msgid "Settings"
+msgstr "Configuración"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_msg_automation_form_view
+msgid "Status"
+msgstr "Estado"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_msg_automation_form_view
+msgid "Conditions"
+msgstr "Condiciones"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_msg_automation_form_view
+msgid "Message Template"
+msgstr "Plantilla de Mensaje"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_msg_automation_form_view
+msgid "Code"
+msgstr "Código"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_form_view
+msgid "Origen (From)"
+msgstr "Origen (De)"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_form_view
+msgid "Destino (Chat)"
+msgstr "Destino (Chat)"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_form_view
+msgid "Detalles"
+msgstr "Detalles"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_list_view
+msgid "Simulación"
+msgstr "Simulación"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "Reales"
+msgstr "Reales"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "Salientes"
+msgstr "Salientes"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "Entrantes"
+msgstr "Entrantes"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "Agrupar"
+msgstr "Agrupar"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "Fecha"
+msgstr "Fecha"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "Tipo"
+msgstr "Tipo"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "From Username"
+msgstr "Usuario Origen"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_notification_search_view
+msgid "Chat Username"
+msgstr "Usuario Chat"
+
+#. module: velardi_telegram_integration
+#: model:ir.model,name:velardi_telegram_integration.model_velardi_telegram_config
+msgid "Telegram Configuration"
+msgstr "Configuración de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model,name:velardi_telegram_integration.model_velardi_telegram_msg_automation
+msgid "Telegram Message Automation"
+msgstr "Automatización de Mensajes de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model,name:velardi_telegram_integration.model_velardi_telegram_notification
+msgid "Telegram Notification"
+msgstr "Notificación de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model,name:velardi_telegram_integration.model_velardi_telegram_command
+msgid "Telegram Command"
+msgstr "Comando de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__name
+msgid "Configuration Name"
+msgstr "Nombre de Configuración"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__bot_token
+msgid "Bot Token"
+msgstr "Token del Bot"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__default_chat_id
+msgid "Default Chat ID"
+msgstr "ID de Chat por Defecto"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__simulation
+msgid "Simulation Mode"
+msgstr "Modo de Simulación"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__webhook_path
+msgid "Webhook Base URL"
+msgstr "URL Base del Webhook"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__webhook_url
+msgid "Registered Webhook URL"
+msgstr "URL del Webhook Registrado"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__last_status
+msgid "Last Status"
+msgstr "Último Estado"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__welcome_message
+msgid "Welcome message"
+msgstr "Mensaje de bienvenida"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__welcome_message_type
+msgid "Welcome Message Type"
+msgstr "Tipo de mensaje de bienvenida"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__enable_email_registration
+msgid "Indicate whether it asks the user to register their email"
+msgstr "Indica si solicita registrar el email a usuario"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__successful_registration_message
+msgid "Registration Success Message"
+msgstr "Mensaje de registro exitoso"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__successful_registration_message_type
+msgid "Registration Message Type"
+msgstr "Tipo de mensaje de registro"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__error_registration_message
+msgid "Registration Error Message"
+msgstr "Mensaje de error de registro"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__error_registration_message_type
+msgid "Error Message Type"
+msgstr "Tipo de mensaje de error"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_command__command
+msgid "Command"
+msgstr "Comando"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_command__bot_config_id
+msgid "Bot Configuration"
+msgstr "Configuración del Bot"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_command__active_bot
+msgid "Register in BOT"
+msgstr "Registrado en Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_command__code
+msgid "Python Code"
+msgstr "Código Python"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_notification__notification_type
+msgid "Notification Type"
+msgstr "Tipo de Notificación"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_notification__entity_type
+msgid "Entity Type"
+msgstr "Tipo de Entidad"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_notification__date_notification
+msgid "Last Telegram Interaction"
+msgstr "Última Interacción de Telegram"
+
+#. module: velardi_telegram_integration
+#: model_terms:ir.ui.view,arch_db:velardi_telegram_integration.velardi_telegram_config_form_view
+msgid "¿Estás seguro de que quieres eliminar este comando del BOT? Esta acción es irreversible."
+msgstr "¿Estás seguro de que quieres eliminar este comando del BOT? Esta acción es irreversible."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "Telegram message sending mixin"
+msgstr "Mixin para envío de mensajes de Telegram"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "🏠 <b>Main Menu</b>\nChoose an option:"
+msgstr "🏠 <b>Menú Principal</b>\nElige una opción:"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "Choose an option from the keyboard:"
+msgstr "Selecciona una opción del teclado:"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "❌ Operation cancelled."
+msgstr "❌ Operación cancelada."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "📋 View Tasks"
+msgstr "📋 Ver tareas"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "📊 Reports"
+msgstr "📊 Reportes"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "⚙️ Settings"
+msgstr "⚙️ Configuración"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "❌ Close Menu"
+msgstr "❌ Cerrar menú"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "❌ Cancel"
+msgstr "❌ Cancelar"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "Choose an option..."
+msgstr "Elige una opción..."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "🌐 Open Website"
+msgstr "🌐 Abrir web"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "📧 Please enter your email address.\n\n<i>You can cancel with /cancel</i>"
+msgstr "📧 Por favor, ingresa tu dirección de correo electrónico.\n\n<i>Puedes cancelar con /cancel</i>"
+
+#. module: velardi_telegram_integration
+#: model:ir.model,name:velardi_telegram_integration.model_velardi_telegram_user
+msgid "Telegram Linked User"
+msgstr "Usuario de Telegram Vinculado"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__user_id
+msgid "Odoo User"
+msgstr "Usuario Odoo"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__partner_id
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__chat_id
+msgid "Telegram Chat ID"
+msgstr "Chat ID de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__first_name
+msgid "Telegram First Name"
+msgstr "Nombre de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__last_name
+msgid "Telegram Last Name"
+msgstr "Apellido de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__telegram_username
+msgid "Telegram Username"
+msgstr "Username de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__language_code
+msgid "Language Code"
+msgstr "Código de Idioma"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__last_interaction
+msgid "Last Interaction"
+msgstr "Última Interacción"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__email
+msgid "Telegram Email"
+msgstr "Email de Telegram"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__phone_number
+msgid "Phone Number"
+msgstr "Número de Teléfono"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__state
+msgid "State"
+msgstr "Estado"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__awaiting_message_id
+msgid "Request Message ID"
+msgstr "ID del Mensaje de Solicitud"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_user__state_updated
+msgid "Last State Update"
+msgstr "Última Actualización de Estado"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_user.py:0
+#, python-format
+msgid "Chat ID must be unique per bot."
+msgstr "El Chat ID debe ser único por bot."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_mixin.py:0
+#, python-format
+msgid "⚠️ Please reply directly to the message where I asked for your email."
+msgstr "⚠️ Por favor, responde directamente al mensaje donde te pedí el email."
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__phone_request_message
+msgid "Phone Request Message"
+msgstr "Mensaje de solicitud de teléfono"
+
+#. module: velardi_telegram_integration
+#: model:ir.model.fields,field_description:velardi_telegram_integration.field_velardi_telegram_config__phone_request_message_type
+msgid "Phone Request Message Type"
+msgstr "Tipo de mensaje de solicitud de teléfono"
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Phone request message cannot be empty when type is 'Payload JSON'."
+msgstr "El mensaje de solicitud de teléfono no puede estar vacío cuando el tipo es 'Payload JSON'."
+
+#. module: velardi_telegram_integration
+#: code:addons/velardi_telegram_integration/models/velardi_telegram_config.py:0
+#, python-format
+msgid "Phone request message must be valid JSON.\n"
+msgstr "El mensaje de solicitud de teléfono debe ser un JSON válido.\n"

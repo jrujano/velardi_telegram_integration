@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Module category -->
+    <record id="module_velardi_telegram_category" model="ir.module.category">
+        <field name="name">Velardi Telegram</field>
+    </record>
+
+    <!-- Base user group -->
+    <record id="group_velardi_telegram_api" model="res.groups">
+        <field name="name">Velardi Telegram Group</field>
+        <field name="category_id" ref="module_velardi_telegram_category"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Group for users with access to the Velardi Telegram Integration.</field>
+    </record>
+
+    <!-- Multi-company rule for configuration -->
+    <record id="velardi_telegram_config_rule" model="ir.rule">
+        <field name="name">Velardi Telegram Config: Multi-company</field>
+        <field name="model_id" ref="model_velardi_telegram_config"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_velardi_telegram_api'))]"/>
+    </record>
+
+    <!-- Multi-company rule for commands -->
+    <record id="velardi_telegram_command_rule" model="ir.rule">
+        <field name="name">Velardi Telegram Command: Multi-company</field>
+        <field name="model_id" ref="model_velardi_telegram_command"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_velardi_telegram_api'))]"/>
+    </record>
+
+    <!-- Multi-company rule for notifications -->
+    <record id="velardi_telegram_notification_rule" model="ir.rule">
+        <field name="name">Velardi Telegram Notification: Multi-company</field>
+        <field name="model_id" ref="model_velardi_telegram_notification"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_velardi_telegram_api'))]"/>
+    </record>
+
+    <!-- Multi-company rule for message automation -->
+    <record id="velardi_telegram_msg_automation_rule" model="ir.rule">
+        <field name="name">Velardi Telegram Msg Automation: Multi-company</field>
+        <field name="model_id" ref="model_velardi_telegram_msg_automation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_velardi_telegram_api'))]"/>
+    </record>
+</odoo>

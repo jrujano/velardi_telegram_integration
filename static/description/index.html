@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación del Módulo - Velardi Telegram Integration</title>
+    <!-- Bootstrap 5 CSS CDN para vistas independientes fuera de Odoo -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 4/5 para Iconografía nativa -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .odoo-card {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        }
+        .odoo-card-header {
+            background-color: #f8fafc !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 12px 20px !important;
+        }
+        .odoo-section-title {
+            color: #714B67 !important; /* Color Púrpura Corporativo Odoo */
+            font-weight: 700 !important;
+            border-bottom: 2px solid #714B67 !important;
+            padding-bottom: 6px !important;
+            margin-bottom: 20px !important;
+        }
+        .odoo-code-block {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-size: 12px !important;
+            border-radius: 6px !important;
+            padding: 16px !important;
+            overflow-x: auto !important;
+            line-height: 1.5 !important;
+        }
+        .odoo-badge-purple {
+            background-color: #714B67 !important;
+            color: #ffffff !important;
+        }
+        .odoo-badge-teal {
+            background-color: #00A09D !important; /* Color Teal Odoo */
+            color: #ffffff !important;
+        }
+    </style>
+</head>
+<body>
+
+<section class="container py-4 font-sans">
+
+    <!-- Header / Banner del Módulo -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="p-4 odoo-card d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-3" style="background-color: #f1f5f9; color: #714B67;">
+                        <i class="fa fa-paper-plane fa-2x"></i>
+                    </div>
+                    <div>
+                        <h2 class="h4 font-weight-bold mb-1" style="color: #1e293b;">Velardi Telegram Integration</h2>
+                        <p class="text-muted mb-0 small">Manual Técnico de Arquitectura, Automatizaciones &amp; Webhooks</p>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge odoo-badge-teal px-3 py-2">
+                        <i class="fa fa-check-circle me-1"></i> v17 / v18 Compatible
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 1: Arquitectura Bidireccional -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h4 class="odoo-section-title">
+                <i class="fa fa-sitemap me-2"></i>1. Arquitectura y Flujo de Datos
+            </h4>
+            <p class="text-muted small mb-4">
+                El módulo opera de manera bidireccional conectando el motor del ORM de Odoo con la API de Bots de Telegram mediante notificaciones salientes automatizadas y captura de eventos entrantes vía Webhooks HTTP.
+            </p>
+
+            <div class="row g-3 text-center">
+                <div class="col-md-4">
+                    <div class="p-3 odoo-card h-100">
+                        <span class="badge odoo-badge-purple mb-2">NOTIFICACIONES SALIENTES</span>
+                        <h6 class="font-weight-bold text-dark mt-2">ORM &amp; Automation</h6>
+                        <p class="small text-muted mb-0">
+                            Reglas gatilladas por <code class="text-primary">create</code>, <code class="text-primary">write</code> o <code class="text-primary">unlink</code> ejecutan plantillas Jinja o Python seguro (<code class="text-primary">safe_eval</code>) para enviar alertas a Telegram.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 odoo-card h-100 d-flex flex-column justify-content-center" style="background-color: #f8fafc !important;">
+                        <i class="fa fa-telegram fa-3x mb-2" style="color: #0088cc;"></i>
+                        <strong class="small text-dark">TELEGRAM BOT API</strong>
+                        <span class="text-muted" style="font-size: 11px;">Inline Keyboards / Callbacks</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 odoo-card h-100">
+                        <span class="badge odoo-badge-teal mb-2">EVENTOS ENTRANTES</span>
+                        <h6 class="font-weight-bold text-dark mt-2">HTTP Webhook Controller</h6>
+                        <p class="small text-muted mb-0">
+                            Endpoint público en <code class="text-success">/telegram/webhook/&lt;bot_id&gt;</code> procesa respuestas y clics en botones interactivos actualizando el Mixin.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 2: Regla Automatizada en Código Python -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h4 class="odoo-section-title">
+                <i class="fa fa-code me-2"></i>2. Regla de Automatización: Código Python (`safe_eval`)
+            </h4>
+            <p class="text-muted small mb-3">
+                Ejemplo de regla registrada en el modelo <code class="text-dark">velardi.telegram.msg.automation</code> configurada para ejecutarse en la actualización de Pedidos de Venta.
+            </p>
+
+            <div class="odoo-card mb-3">
+                <div class="odoo-card-header d-flex justify-content-between align-items-center">
+                    <strong class="text-dark"><i class="fa fa-cog me-2"></i>Regla: Orden-Update (sale.order)</strong>
+                    <div>
+                        <span class="badge bg-warning text-dark me-1">Trigger: On Write</span>
+                        <span class="badge odoo-badge-purple">Tipo: Python Code</span>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div class="odoo-code-block">
+<pre class="m-0"><code># 1. Validación de registro dentro del contexto localdict
+log(f"Iniciando procesamiento para el pedido {record.name}")
+record = records[0] if records else None
+
+if not record:
+    raise UserError("No se encontró ningún pedido de venta en 'records'.")
+
+_logger.info("Ejecutando acción personalizada para el pedido: %s", record.name)
+tareas_creadas = []
+
+# 2. Generación de tareas en el módulo de proyectos de Odoo
+for line in record.order_line:
+    proyecto = env['project.project'].search([('name', '=', 'Proyectos Web')], limit=1)
+    if proyecto:
+        fecha_limite = date.today() + timedelta(days=7)
+        nueva_tarea = env['project.task'].create({
+            'name': f"Servicio contratado: {line.product_id.name} ({record.name})",
+            'project_id': proyecto.id,
+            'partner_id': record.partner_id.id,
+            'date_deadline': fecha_limite,
+            'description': f"Tarea generada automáticamente desde el pedido {record.name}.",
+        })
+        tareas_creadas.append(nueva_tarea.name)
+
+# 3. Notificación a Telegram usando el módulo 'requests' envuelto seguro
+if tareas_creadas:
+    chat_id = self.chat_id or self.config_id.default_chat_id
+    message = (
+        "&lt;b&gt;Acción Automática:&lt;/b&gt;\n"
+        "Se crearon las siguientes tareas:\n"
+        + "\n".join(f"• {t}" for t in tareas_creadas)
+    )
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML",
+        "reply_markup": {              
+            "inline_keyboard": [      
+                [{'text': 'Opción A', 'callback_data': 'opcion_a'}],
+                [{'text': 'Opción B', 'callback_data': 'opcion_b'}],
+                [{'text': 'Hablar con soporte', 'callback_data': 'soporte'}]
+            ]
+        }
+    }
+    url = f"https://api.telegram.org/bot{self.config_id.bot_token}/sendMessage"
+    response = requests.post(url, json=payload, timeout=15)
+    
+    self.config_id.send_message(message, chat_id=chat_id)
+    record.message_post(body=message)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 3: Regla Automatizada con Plantilla Jinja -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h4 class="odoo-section-title">
+                <i class="fa fa-file-text me-2"></i>3. Regla de Automatización: Plantilla Jinja
+            </h4>
+            <p class="text-muted small mb-3">
+                Configuración simplificada mediante sustitución dinámica de expresiones de texto y bucles para notificación instantánea al crear registros.
+            </p>
+
+            <div class="odoo-card mb-3">
+                <div class="odoo-card-header d-flex justify-content-between align-items-center">
+                    <strong class="text-dark"><i class="fa fa-envelope me-2"></i>Regla: New-Order (sale.order)</strong>
+                    <div>
+                        <span class="badge bg-success me-1">Trigger: On Create</span>
+                        <span class="badge odoo-badge-teal">Tipo: Plantilla</span>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div class="odoo-code-block" style="color: #cbd5e1 !important;">
+<pre class="m-0"><code>🔔 New Order
+📋 Order: ${name}
+👤 Customer: ${partner_id.name}
+💰 Total: ${amount_total}
+
+📦 Items:
+{% for line in order_line %}
+- Cantidad: ${line.product_uom_qty} -${line.product_id.name}
+{% endfor %}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 4: Controlador HTTP & Registro de Webhooks -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h4 class="odoo-section-title">
+                <i class="fa fa-cogs me-2"></i>4. Configuración del Bot y Controlador de Webhooks
+            </h4>
+            <p class="text-muted small mb-4">
+                El módulo expone un endpoint seguro no autenticado para la recepción de actualizaciones en tiempo real y gestiona la vinculación de la URL mediante la API oficial.
+            </p>
+
+            <div class="row g-4">
+                <!-- Configuración -->
+                <div class="col-md-6">
+                    <div class="odoo-card h-100 p-3">
+                        <h6 class="font-weight-bold text-dark mb-2">
+                            <i class="fa border-0 fa-sliders me-2 text-primary"></i>velardi.telegram.config
+                        </h6>
+                        <p class="small text-muted">
+                            Gestión centralizada del Bot Token, modo simulación, botones interactivos e inscripción del webhook.
+                        </p>
+                        <div class="odoo-code-block">
+<pre class="m-0"><code>def action_register_webhook(self):
+    base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+    webhook_endpoint = f'{base_url}/telegram/webhook/{self.id}'
+    url = f'https://api.telegram.org/bot{self.bot_token}/setWebhook'
+    response = requests.post(
+        url, json={'url': webhook_endpoint}, timeout=10
+    )</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Webhook Controller -->
+                <div class="col-md-6">
+                    <div class="odoo-card h-100 p-3">
+                        <h6 class="font-weight-bold text-dark mb-2">
+                            <i class="fa fa-cloud-download me-2 text-success"></i>telegram_webhook.py Controller
+                        </h6>
+                        <p class="small text-muted">
+                            Endpoint HTTP encargado de recibir los JSON desde Telegram y delegarlos al Mixin de procesamiento.
+                        </p>
+                        <div class="odoo-code-block">
+<pre class="m-0"><code>@http.route('/telegram/webhook/&lt;int:bot_id&gt;', type='json', auth='none', csrf=False, methods=['POST'])
+def telegram_webhook(self, bot_id, **kwargs):
+    bot_config = request.env['velardi.telegram.config'].sudo().browse(bot_id)
+    update_data = request.get_json_data()
+    if bot_config.save_notificaction:
+        request.env['velardi.telegram.mixin'].sudo()._process_incoming_update(update_data)
+    return {'ok': True}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 5: Contexto de Evaluación Seguro (localdict) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="odoo-card p-4">
+                <h6 class="font-weight-bold text-dark mb-3">
+                    <i class="fa fa-shield me-2" style="color: #714B67;"></i>Contexto de Evaluación Inyectado (`localdict`)
+                </h6>
+                <p class="small text-muted mb-3">
+                    Herramientas y librerías declaradas dentro del sandbox seguro de <code class="text-dark">safe_eval</code> disponibles para usarse en scripts personalizados:
+                </p>
+                
+                <div class="row g-2 text-center small font-monospace">
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong style="color: #714B67;">env</strong><br><span class="text-muted">(self.env)</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong style="color: #714B67;">record / records</strong><br><span class="text-muted">(Recordsets)</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong class="text-primary">requests</strong><br><span class="text-muted">(Wrapped Module)</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong class="text-warning text-dark">relativedelta</strong><br><span class="text-muted">(Manejo Fechas)</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong class="text-warning text-dark">dateutil_parser</strong><br><span class="text-muted">(Parse_date)</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong class="text-success">html_escape</strong><br><span class="text-muted">(Odoo Tool)</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong class="text-success">log()</strong><br><span class="text-muted">(Custom Logging)</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2 bg-light rounded border"><strong class="text-danger">UserError</strong><br><span class="text-muted">(Excepción)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-5">
+        <div class="col-12">
+            <h4 class="odoo-section-title">
+                <i class="fa fa-cogs me-2"></i>5. Comandos
+            </h4>
+            <p class="text-muted small mb-4">
+                El módulo permite crear comando para el Bot  gestiona la vinculación de la URL mediante la API oficial.
+            </p>
+
+            <div class="row g-4">
+                <!-- Configuración -->
+                <div class="col-md-12">
+                    <div class="odoo-card h-100 p-3">
+                        <h6 class="font-weight-bold text-dark mb-2">
+                            <i class="fa border-0 fa-sliders me-2 text-primary"></i>action_register_commands
+                        </h6>
+                        <p class="small text-muted">
+                            Añade un comando preservando los existentes.
+                        </p>
+                         <h6 class="font-weight-bold text-dark mb-2">
+                            <i class="fa border-0 fa-sliders me-2 text-primary"></i>action_remove_command
+                        </h6>
+                        <p class="small text-muted">
+                            Elimina un comando preservando los demás.
+                        </p>
+                        
+                    </div>
+                    
+                </div>
+
+           
+            </div>
+        </div>
+    </div>
+     <div class="row mb-5">
+        <div class="col-12">
+            <h4 class="odoo-section-title">
+                <i class="fa fa-file-text me-2"></i>6. Mensajes de Bienvenida, Registro y Error
+            </h4>
+            <p class="text-muted small mb-3">
+                Configuración de mensajes automáticos enviados durante el flujo de interacción del bot: bienvenida, registro exitoso y errores.
+            </p>
+
+            <div class="row g-4">
+                <!-- Welcome Message -->
+                <div class="col-md-4">
+                    <div class="odoo-card h-100 p-3">
+                        <h6 class="font-weight-bold text-dark mb-2">
+                            <i class="fa fa-hand-peace-o me-2 text-primary"></i>Mensaje de Bienvenida
+                        </h6>
+                        <p class="small text-muted">
+                            Se envía al ejecutar <code>/start</code>.
+                        </p>
+                        <ul class="small text-muted">
+                            <li><code>welcome_message_type</code>: text / payload</li>
+                            <li><code>welcome_message</code>: Contenido</li>
+                        </ul>
+                        <div class="odoo-code-block">
+<pre class="m-0"><code>{
+  "parse_mode": "HTML",
+  "text": "&lt;b&gt; BIENVENIDO &lt;/b&gt;\n\nHola, &lt;b&gt;{{first_name}}&lt;/b&gt;",
+  "reply_markup": {
+    "inline_keyboard": [
+      [{"text": "🔗 Vincular",
+        "callback_data": "start_reg"}],
+      [{"text": "📲 WhatsApp",
+        "url": "https://wa.me/56982510043"}]
+    ]
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Registration Message -->
+                <div class="col-md-4">
+                    <div class="odoo-card h-100 p-3">
+                        <h6 class="font-weight-bold text-dark mb-2">
+                            <i class="fa fa-check-circle me-2 text-success"></i>Registro Exitoso
+                        </h6>
+                        <p class="small text-muted">
+                            Se envía cuando el registro se completa correctamente.
+                        </p>
+                        <ul class="small text-muted">
+                            <li><code>successful_registration_message_type</code>: text / payload</li>
+                            <li><code>successful_registration_message</code>: Contenido</li>
+                        </ul>
+                        <div class="odoo-code-block">
+<pre class="m-0"><code>{
+  "text": "✅ Registro exitoso. ¡Bienvenido!",
+  "parse_mode": "HTML"
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Registration Message -->
+                <div class="col-md-4">
+                    <div class="odoo-card h-100 p-3">
+                        <h6 class="font-weight-bold text-dark mb-2">
+                            <i class="fa fa-exclamation-triangle me-2 text-danger"></i>Error de Registro
+                        </h6>
+                        <p class="small text-muted">
+                            Se envía cuando falla un intento de registro.
+                        </p>
+                        <ul class="small text-muted">
+                            <li><code>error_registration_message_type</code>: text / payload</li>
+                            <li><code>error_registration_message</code>: Contenido</li>
+                        </ul>
+                        <div class="odoo-code-block">
+<pre class="m-0"><code>{
+  "text": "❌ Error en el registro. Intenta nuevamente.",
+  "parse_mode": "HTML"
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

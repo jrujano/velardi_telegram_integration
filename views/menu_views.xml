@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="velardi_telegram_menu_root" 
+                  name="Velardi Telegram" 
+                  parent="base.menu_administration" 
+                  sequence="100"/>
+
+    <menuitem id="velardi_telegram_menu_automation"
+              name="Automations"
+              parent="velardi_telegram_menu_root"
+              action="velardi_telegram_msg_automation_action"
+              sequence="10"/>
+
+    <menuitem id="velardi_telegram_menu_notification"
+              name="Notifications"
+              parent="velardi_telegram_menu_root"
+              action="velardi_telegram_notification_action"
+              sequence="20"/>
+
+    <menuitem id="velardi_telegram_menu_config"
+              name="Configuration"
+              parent="velardi_telegram_menu_root"
+              action="velardi_telegram_config_action"
+              sequence="30"/>
+
+    <menuitem id="velardi_telegram_menu_commands"
+              name="Commands"
+              parent="velardi_telegram_menu_root"
+              action="velardi_telegram_command_action"
+              sequence="40"/>
+
+    <menuitem id="velardi_telegram_menu_users"
+              name="Telegram Users"
+              parent="velardi_telegram_menu_root"
+              action="velardi_telegram_user_action"
+              sequence="15"/>
+</odoo>

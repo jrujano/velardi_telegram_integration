@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="velardi_telegram_config_form_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.config.form</field>
+        <field name="model">velardi.telegram.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_send_test" string="Send Test" type="object"
+                            class="btn-primary" invisible="not active"/>
+                    <button name="action_register_webhook" string="Register Webhook Test" type="object"
+                            class="btn-primary" invisible="not active or simulation"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Configuration Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Bot Settings">
+                            <field name="bot_token" password="True"
+                                   placeholder="e.g. 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"/>
+                            <field name="default_chat_id"
+                                   placeholder="e.g. -1001234567890 or 123456789"/>
+                            <field name="webhook_path"
+                                   placeholder="e.g. https://mi-odoo.com"/>
+                        </group>
+                        <group string="Options">
+                            <field name="simulation" widget="boolean_toggle"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="save_notificaction" widget="boolean_toggle"/>
+                            <field name="enable_email_registration" widget="boolean_toggle"/>
+                            <field name="enable_phone_registration" widget="boolean_toggle"/>
+                            
+                            <field name="webhook_url"/>
+                            <field name="last_status"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="">
+                            <separator  string="Greeting message"/>
+                            <field name="welcome_message_type"  help="Proporciona una descripción detallada de este elemento."/>
+                            <field name="welcome_message"
+                                   placeholder="¡Hola! Gracias por conectarte. Elige una opción:"/>
+                            <p class="oe_grey">If the message type is 'Payload', make sure the content is valid JSON.</p>
+                            <p class="oe_grey">
+                                Example payload: {
+                                    "parse_mode": "HTML",
+                                    "text": "👋 BIENVENIDO \n\nHola, {{first_name}} {{last_name}} \n Soy el bot de soporte y gestión corporativa de <a href='www.velardi.cl'>Insumos Velardi</a>.\n\nPara acceder a tus productos, pedidos, documentos y notificaciones en tiempo real, necesitas vincular tu cuenta con nosotros. \n\n Pulsa el botón de abajo para comenzar 👇",
+                                    "reply_markup": {
+                                        "inline_keyboard": [
+                                        [
+                                            {
+                                            "text": "🔗 Vincular mi Cuenta",
+                                            "callback_data": "start_registration"
+                                            }
+                                        ],
+                                        [
+                                            {
+                                            "text": "📲 Abrir WhatsApp (+56 9 8251 0043)",
+                                            "url": "https://wa.me/56982510043"
+                                            }
+                                        ],
+                                        [
+                                            {
+                                            "text": "🌐 Sitio Web",
+                                            "url": "https://www.velardi.cl"
+                                            },
+                                            {
+                                            "text": "📸 Instagram",
+                                            "url": "https://instagram.com/insumosvelardicl"
+                                            }
+                                        ]
+                                        ]
+                                    }}</p>
+
+                            <separator  string="Successful registration message"/>
+                            <field name="successful_registration_message_type"/>
+                            <field name="successful_registration_message"
+                                   placeholder="✅ Registro exitoso. ¡Bienvenido!"/>
+                            <p class="oe_grey">Message sent when a user completes registration successfully.</p>
+                            <p class="oe_grey">
+                                Example payload: {
+                                    "text": "✅ <b>Registro completado</b>\n\n   👤<b>{{first_name}} {{last_name}}</b>\n\n   📧 Email: <code>{{email}} </code>\n\n   🏷️ Usuario: <code>{{telegram_username}} </code>\n\n www.velardi.cl.\n\n Envía /menu para comenzar.",
+                                    "parse_mode": "HTML",
+                                    "reply_markup": {
+                                        "inline_keyboard": [
+                                        [
+                                            {
+                                            "text": "Opción A",
+                                            "callback_data": "opcion_a"
+                                            }
+                                        ],
+                                        [
+                                            {
+                                            "text": "Opción B",
+                                            "callback_data": "opcion_b"
+                                            }
+                                        ],
+                                        [
+                                            {
+                                            "text": "Hablar con soporte",
+                                            "callback_data": "soporte"
+                                            }
+                                        ]
+                                        ]
+                                    }
+                                    }</p>
+                        </group>
+                         <group>
+                             <separator  string="Email request message"/>
+                            <field name="email_request_message_type"/>
+                            <field name="email_request_message"
+                                   placeholder="📧 Por favor, ingresa tu dirección de correo electrónico."/>
+                            <p class="oe_grey">Message sent when requesting the user's email address.</p>
+                            <p class="oe_grey">
+                                Example payload: 
+                                    {
+                                    "text": "Compárteme tu <b>correo electrónico</b> para crear tu cuenta y mantenerte al tanto  de todas las novedades y beneficios exclusivos 🚀",
+                                    "parse_mode": "HTML",
+                                    "reply_markup": {
+                                        "force_reply": true,
+                                        "selective": true,
+                                        "input_field_placeholder": "@email.com"
+                                    }
+                                    }
+                            </p>
+
+                            <separator  string="Phone request message"/>
+                            <field name="phone_request_message_type"/>
+                            <field name="phone_request_message"
+                                   placeholder="📱 Por favor, ingresa tu número de teléfono."/>
+                            <p class="oe_grey">Message sent when requesting the user's phone number.</p>
+                            <p class="oe_grey">
+                                Example payload: {
+                                "text": "📱 Please enter your phone number.",
+                                "parse_mode": "HTML",
+                                "reply_markup": {
+                                    "keyboard": [
+                                    [
+                                        {
+                                        "text": "📱 Share my contact",
+                                        "request_contact": true
+                                        }
+                                    ],
+                                    [
+                                        {
+                                        "text": "✍️ Type manually"
+                                        }
+                                    ]
+                                    ],
+                                    "resize_keyboard": true,
+                                    "one_time_keyboard": true
+                                }
+                                }
+                            </p>
+
+                            <separator  string="Error Registration message"/>
+                            <field name="error_registration_message_type"/>
+                            <field name="error_registration_message"
+                                   placeholder="❌ Error en el registro. Intenta nuevamente."/>
+                            <p class="oe_grey">Message sent when a registration attempt fails.</p>
+                            <p class="oe_grey">
+                                Example payload: 
+                                   {
+                                    "text": "⚠️ Ha ocurrido un error, Si deseas contacta con soporte. ",
+                                    "parse_mode": "HTML",
+                                    "reply_markup": {
+                                        "inline_keyboard": [
+                                        [
+                                            {
+                                            "text": "Hablar con soporte",
+                                            "callback_data": "soporte"
+                                            }
+                                        ],
+                                        [
+                                            {
+                                            "text": "🌐 Sitio Web",
+                                            "url": "https://www.velardi.cl"
+                                            },
+                                            {
+                                            "text": "📸 Instagram",
+                                            "url": "https://instagram.com/insumosvelardicl"
+                                            }
+                                        ]
+                                        ]
+                                    }
+                                    }
+                            </p>
+
+                            
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="velardi_telegram_config_list_view" model="ir.ui.view">
+        <field name="name">velardi.telegram.config.list</field>
+        <field name="model">velardi.telegram.config</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="default_chat_id"/>
+                <field name="webhook_path"/>
+                <field name="simulation"/>
+                <field name="active"/>
+                <field name="save_notificaction"/>
+                
+                <field name="last_status"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="velardi_telegram_config_action" model="ir.actions.act_window">
+        <field name="name">Telegram Configurations</field>
+        <field name="res_model">velardi.telegram.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
