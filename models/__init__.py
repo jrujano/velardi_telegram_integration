@@ -7,3 +7,4 @@ from . import velardi_telegram_notification
 from . import velardi_telegram_mixin
 from . import velardi_telegram_command
 from . import velardi_telegram_user
+from . import velardi_telegram_group

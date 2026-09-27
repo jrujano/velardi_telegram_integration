@@ -32,6 +32,7 @@
         "views/velardi_telegram_msg_automation_views.xml",
         "views/velardi_telegram_notification_views.xml",
         "views/velardi_telegram_user_views.xml",
+        "views/velardi_telegram_group_views.xml",
         "views/velardi_telegram_command.xml",
         "views/menu_views.xml",
     ],

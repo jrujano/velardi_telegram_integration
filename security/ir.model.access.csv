@@ -9,3 +9,5 @@ access_vel_telegram_command_api,velardi.telegram.command,model_velardi_telegram_
 access_vel_telegram_command_admin,velardi.telegram.command.access.admin,model_velardi_telegram_command,base.group_system,1,1,1,1
 access_vel_telegram_user_api,velardi.telegram.user,model_velardi_telegram_user,group_velardi_telegram_api,1,1,1,1
 access_vel_telegram_user_admin,velardi.telegram.user.access.admin,model_velardi_telegram_user,base.group_system,1,1,1,1
+access_vel_telegram_group_api,velardi.telegram.group,model_velardi_telegram_group,group_velardi_telegram_api,1,1,1,1
+access_vel_telegram_group_admin,velardi.telegram.group.access.admin,model_velardi_telegram_group,base.group_system,1,1,1,1

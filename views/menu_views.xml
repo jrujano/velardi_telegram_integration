@@ -34,4 +34,10 @@
               parent="velardi_telegram_menu_root"
               action="velardi_telegram_user_action"
               sequence="15"/>
+
+    <menuitem id="velardi_telegram_menu_groups"
+              name="Telegram Groups"
+              parent="velardi_telegram_menu_root"
+              action="velardi_telegram_group_action"
+              sequence="16"/>
 </odoo>

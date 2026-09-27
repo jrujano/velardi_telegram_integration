@@ -266,10 +266,17 @@ class VelardiTelegramMsgAutomation(models.Model):
     def _filter_post(self, records):
         self.ensure_one()
         if not self.filter_domain or not records:
+            _logger.info("[Telegram] _filter_post: rule='%s', no domain or no records, returning all (%d)",
+                         self.name, len(records) if records else 0)
             return records
         try:
             domain = safe_eval(self.filter_domain)
-            return records.filtered_domain(domain)
+            _logger.info("[Telegram] _filter_post: rule='%s', domain=%s, input=%d records",
+                         self.name, domain, len(records))
+            filtered = records.filtered_domain(domain)
+            _logger.info("[Telegram] _filter_post: rule='%s', filtered=%d records",
+                         self.name, len(filtered))
+            return filtered
         except Exception:
             _logger.warning("[Telegram] Invalid domain for '%s': %s", self.name, self.filter_domain)
             return records

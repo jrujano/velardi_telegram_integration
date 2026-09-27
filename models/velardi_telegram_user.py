@@ -21,6 +21,10 @@ class VelardiTelegramUser(models.Model):
     config_id = fields.Many2one(
             "velardi.telegram.config", string="Bot Configuration",
             required=True, ondelete="cascade")
+    group_id = fields.Many2one(
+            'velardi.telegram.group', string='Group',
+            ondelete='set null',
+            help='Telegram group this user belongs to.')
     active = fields.Boolean(string='Active', default=True)
     last_interaction = fields.Datetime(string='Last Interaction')
 
