@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <menuitem id="velardi_telegram_root" 
+                  name="Velardi Telegram" 
+                  sequence="70" 
+                  web_icon="velardi_telegram_integration,static/description/icon.png"/>
+
     <menuitem id="velardi_telegram_menu_root" 
                   name="Velardi Telegram" 
                   parent="base.menu_administration" 

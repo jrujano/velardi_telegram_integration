@@ -125,6 +125,7 @@
         <field name="res_model">velardi.telegram.group</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="velardi_telegram_group_search_view"/>
+        <field name="context">{'active_test': False}</field>
     </record>
 
 </odoo>

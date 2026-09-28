@@ -218,5 +218,6 @@
         <field name="name">Telegram Configurations</field>
         <field name="res_model">velardi.telegram.config</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
     </record>
 </odoo>

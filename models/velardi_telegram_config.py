@@ -11,6 +11,7 @@ from odoo.exceptions import ValidationError
 _logger = logging.getLogger(__name__)
 
 TELEGRAM_API = "https://api.telegram.org/bot%s/sendMessage"
+TELEGRAM_API_PHOTO = "https://api.telegram.org/bot%s/sendPhoto"
 
 DEFAULT_JSON_CODE = """{
                     "text": "🏠 Main Menu\nChoose an option:",
@@ -188,7 +189,41 @@ class VelardiTelegramConfig(models.Model):
                         "Phone request message must be valid JSON.\n"
                         "Error: %s" % e
                     )
-                
+    @api.onchange('enable_email_registration')
+    def _onchange_enable_email_registration(self):
+        """
+        Si campo_a cambia a False, campo_b también debe cambiar a False.
+        """
+        if not self.enable_email_registration:  
+            self.enable_phone_registration = False 
+            
+    def _save_outgoing_notification(self, res_data, msg_text, payload):
+        _logger.info("""Save outgoing notification if save_notificaction is enabled.""")
+        if not self.save_notificaction:
+            return
+        result_msg = res_data.get("result", {})
+        from_info = result_msg.get("from", {})
+        chat_info = result_msg.get("chat", {})
+        self.env['velardi.telegram.notification'].create({
+            'update_id': str(result_msg.get("update_id", "")),
+            'message_id': str(result_msg.get("message_id", "")),
+            'from_id': str(from_info.get("id", "")),
+            'from_is_bot': from_info.get("is_bot", ""),
+            'from_first_name': from_info.get("first_name", ""),
+            'from_last_name': from_info.get("last_name", ""),
+            'from_username': from_info.get("username", ""),
+            'from_language_code': from_info.get("language_code", ""),
+            'chat_id': str(chat_info.get("id", "")),
+            'chat_first_name': chat_info.get("first_name", ""),
+            'chat_last_name': chat_info.get("last_name", ""),
+            'chat_username': chat_info.get("username", ""),
+            'chat_type': chat_info.get("type", ""),
+            'text': msg_text,
+            'date_notification': fields.Datetime.now(),
+            'notification_type': 'outgoing',
+            'notification_body': payload,
+        })
+
     def send_message(self, text=None, chat_id=None, payload=None):
         """Send a message through this bot. Returns the Telegram API response
         (or a simulated payload when Simulation Mode is on).
@@ -199,7 +234,7 @@ class VelardiTelegramConfig(models.Model):
             payload: Complete Telegram API payload (overrides text and chat_id)
         """
         self.ensure_one()
-        
+        _logger.warning("\n[Telegram]== send_message",)
         if payload:
             final_payload = payload.copy()
             final_payload.setdefault('chat_id', chat_id or self.default_chat_id)
@@ -219,10 +254,10 @@ class VelardiTelegramConfig(models.Model):
         
         msg_text = final_payload.get('text', '')
         msg_chat = final_payload.get('chat_id', '')
-        
+        _logger.warning("\n[Telegram]== msg_text = %s", msg_text)
         if self.simulation:
             self.last_status = _("Simulated")
-            return {"ok": True, "simulated": True, "text": msg_text, "chat_id": msg_chat}
+            return True
         try:
             _logger.info("[Telegram] final_payload: %s", final_payload)
             response = requests.post(
@@ -234,31 +269,7 @@ class VelardiTelegramConfig(models.Model):
             if response.status_code == 200 and res_data.get("ok"):
                 message_id = res_data.get("result", {}).get("message_id")
                 _logger.info("[Telegram] Message sent OK. Message ID: %s", message_id)
-                if self.save_notificaction:
-                    result_msg = res_data.get("result", {})
-                    from_info = result_msg.get("from", {})
-                    chat_info = result_msg.get("chat", {})
-                    message = result_msg.get("message", {})
-                    self.env['velardi.telegram.notification'].create({
-                        'update_id': str(result_msg.get("update_id", "")),
-                        'message_id': str(result_msg.get("message_id", "")),
-                        'from_id': str(from_info.get("id", "")),
-                        'from_id': str(from_info.get("id", "")),
-                        'from_is_bot': from_info.get("is_bot", ""),
-                        'from_first_name': from_info.get("first_name", ""),
-                        'from_last_name': from_info.get("last_name", ""),
-                        'from_username': from_info.get("username", ""),
-                        'from_language_code': from_info.get("language_code", ""),
-                        'chat_id': str(chat_info.get("id", "")),
-                        'chat_first_name': chat_info.get("first_name", ""),
-                        'chat_last_name': chat_info.get("last_name", ""),
-                        'chat_username': chat_info.get("username", ""),
-                        'chat_type': chat_info.get("type", ""),
-                        'text': msg_text,
-                        'date_notification': fields.Datetime.now(),
-                        'notification_type': 'outgoing',
-                        'notification_body':final_payload
-                    })
+                self._save_outgoing_notification(res_data, msg_text, final_payload)
             else:
                 error_desc = res_data.get("description", response.text)
                 error_code = res_data.get("error_code", response.status_code)
@@ -266,11 +277,77 @@ class VelardiTelegramConfig(models.Model):
         except Exception as exc:
             self.last_status = _("Error: %s") % exc
             raise UserError(_("Could not reach Telegram: %s") % exc)
+
         if not res_data.get("ok"):
             self.last_status = _("Error: %s") % res_data.get("description")
             raise UserError(_("Telegram error: %s") % res_data.get("description"))
         self.last_status = _("Sent")
-        return res_data
+        return str(res_data.get("result", {}).get("message_id", ""))
+
+    def send_photo(self, photo, chat_id=None, caption=None, payload=None):
+        """Send a photo through this bot. Returns the message_id on success.
+        
+        Args:
+            photo: File ID, URL, or local file path of the photo
+            chat_id: Chat ID (defaults to self.default_chat_id)
+            caption: Optional caption text for the photo
+            payload: Extra fields (reply_markup, parse_mode, etc.)
+        """
+        self.ensure_one()
+
+        chat = chat_id or self.default_chat_id
+        if not chat:
+            raise UserError(_("No Telegram chat ID set for bot '%s'.") % self.name)
+
+        if self.simulation:
+            self.last_status = _("Simulated")
+            return True
+
+        body = dict(payload) if payload else {}
+        body.setdefault('chat_id', chat)
+        body['photo'] = photo
+        if caption:
+            body['caption'] = caption
+            body.setdefault('parse_mode', 'HTML')
+
+        is_url = photo.startswith(('http://', 'https://'))
+
+        try:
+            _logger.info("[Telegram] send_photo chat_id=%s photo=%s", chat, photo)
+            if is_url:
+                response = requests.post(
+                    TELEGRAM_API_PHOTO % self.bot_token,
+                    json=body,
+                    timeout=10
+                )
+            else:
+                files = {'photo': open(photo, 'rb')}
+                response = requests.post(
+                    TELEGRAM_API_PHOTO % self.bot_token,
+                    data=body,
+                    files=files,
+                    timeout=10
+                )
+                files['photo'].close()
+
+            res_data = response.json() if response.content else {}
+            if response.status_code == 200 and res_data.get("ok"):
+                message_id = res_data.get("result", {}).get("message_id")
+                _logger.info("[Telegram] Photo sent OK. Message ID: %s", message_id)
+                self._save_outgoing_notification(res_data, caption or '', body)
+                self.last_status = _("Sent")
+                return str(message_id) if message_id else ""
+            else:
+                error_desc = res_data.get("description", response.text)
+                error_code = res_data.get("error_code", response.status_code)
+                _logger.error("[Telegram] sendPhoto Error (%s): %s", error_code, error_desc)
+                self.last_status = _("Error: %s") % error_desc
+                raise UserError(_("Telegram error: %s") % error_desc)
+        except UserError:
+            raise
+        except Exception as exc:
+            self.last_status = _("Error: %s") % exc
+            raise UserError(_("Could not reach Telegram: %s") % exc)
 
     def action_send_test(self):
         self.ensure_one()
@@ -287,17 +364,16 @@ class VelardiTelegramConfig(models.Model):
             """Registra la URL del webhook en Telegram."""
             self.ensure_one()
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+          
             if base_url != self.webhook_path:
-                webhook_endpoint = self.webhook_path
+                webhook_endpoint = f'{self.webhook_path}/{self.id}'
             else:
                 webhook_endpoint = f'{base_url}/telegram/webhook/{self.id}'
 
             
             url = f'https://api.telegram.org/bot{self.bot_token}/setWebhook'
             payload = {'url': webhook_endpoint}
-            _logger.info('Registro de url : %s', url)
-            _logger.info('Registro de webhook_endpoint url : %s', webhook_endpoint)
-
+            _logger.info(f"[Telegram] payload {payload}")
             try:
                 response = requests.post(url, json=payload, timeout=10)
                 response.raise_for_status()

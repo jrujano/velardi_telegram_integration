@@ -83,27 +83,13 @@ class VelardiTelegramMsgAutomation(models.Model):
             ('code', 'Code')
         ], default='template')
 
-    # action_server_ids = fields.One2many(
-    #     "ir.actions.server", "velardi_telegram_automation_id",
-    #     context={'default_usage': 'velardi_telegram_integration'},
-    #     string="Actions",
-    #     compute="_compute_action_server_ids",
-    #     store=True,
-    #     readonly=False,
-    # )
+    
     code = fields.Text(string='Python Code', groups='base.group_system',
                     default=DEFAULT_PYTHON_CODE,
                     help="Write Python code that the action will execute. Some variables are "
                         "available for use; help about python expression is given in the help tab.")
 
-    # @api.depends('model_id')
-    # def _compute_action_server_ids(self):
-    #     for rule in self.filtered('model_id'):
-    #         actions_to_remove = rule.action_server_ids.filtered(
-    #             lambda a: a.model_id != rule.model_id)
-    #         if actions_to_remove:
-    #             rule.action_server_ids = [
-    #                 (3, action.id) for action in actions_to_remove]
+
 
     # ------------------------------------------------------------------
     # ORM lifecycle
@@ -316,6 +302,9 @@ class VelardiTelegramMsgAutomation(models.Model):
                             'bot_token': self.config_id.bot_token,   # Token del bot de Telegram
                             '_logger': _logger,
                             'log': self.custom_log,
+                            # --- Inyectar funciones Built-in de Python requeridas ---
+                            'getattr': getattr,
+                            'hasattr': hasattr,
                             # Inyectamos solo las clases necesarias (NO el módulo entero)
                             'datetime': datetime,                    # La clase datetime (ej: datetime.now())
                             'date': date,                            # La clase date (ej: date.today())

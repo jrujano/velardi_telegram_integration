@@ -32,13 +32,13 @@ class VelardiTelegramMixin(models.AbstractModel):
 
     @api.model
     def _process_incoming_update(self, bot_config,update_data):
-        _logger.warning("[Telegram] Update recibido: %s", list(update_data.keys()))
+        # _logger.warning("[Telegram] Update recibido: %s", list(update_data.keys()))
 
         # Obtener el tipo de evento y su contenido específico
         update_type, payload = self._get_update_type_and_payload(update_data)
 
-        _logger.info(f"\n[Telegram] Tipo de actualización recibida: {update_type}")
-        _logger.info(f"\n[Telegram] payload recibido: {payload}")
+        _logger.info(f"\n[Telegram] Tipo de actualización recibida\n: {update_type}")
+        _logger.info(f"\n[Telegram] payload recibido: {payload}\n")
 
         # Extraer el chat_id según el tipo de respuesta
         chat_id = False
@@ -50,6 +50,9 @@ class VelardiTelegramMixin(models.AbstractModel):
             message =payload.get('message', {})
         elif update_type in ['my_chat_member', 'chat_member']:
             chat_id = str(payload.get('chat', {}).get('id', ''))
+        elif update_type in ['poll']:
+            _logger.warning(f"\n[Telegram] Evento {update_type} no configurado.")
+            return
 
         if not chat_id:
             _logger.warning(f"\n[Telegram] Evento {update_type} no contiene un chat_id procesable.")
@@ -85,14 +88,28 @@ class VelardiTelegramMixin(models.AbstractModel):
 
         _logger.info("\n[Telegram] entities: %s", entities)
         _logger.info("\n[Telegram] has_email: %s", has_email)
+        _logger.info("\n[Telegram] is_command: %s", is_command)
+        _logger.info("\n[Telegram] update_type: %s", update_type)
 
+        registration_not_required = not bot_config.enable_email_registration
+        is_registered_active = (bot_config.enable_email_registration and telegram_user.state == 'registered'  and telegram_user.active  )
         if is_command:
             _logger.info("[Telegram] comando: %s", is_command)
-            return self._handle_command(bot_config, telegram_user, chat_id, text, message)
+            is_start_cmd = (text.lower() == '/start')
+            if is_start_cmd or registration_not_required or is_registered_active:
+                return self._handle_command(bot_config, telegram_user, chat_id, text.lower(), message)
+            else:
+                return self._send_error_message(bot_config, telegram_user, chat_id)
             
         if update_type == 'callback_query':
-            return self._handle_callback(bot_config, update_data, telegram_user)
+            if telegram_user.state == 'registered' or not bot_config.enable_email_registration:
+                _logger.info("\n[Telegram] sending callback_query")
+                return self._handle_callback(bot_config, update_data, telegram_user)
+            elif telegram_user.state in['new']  and bot_config.enable_email_registration:
+                return self._handle_callback(bot_config, update_data, telegram_user)    
+            
 
+       
         message = update_data.get('message') or update_data.get('edited_message')
         if not message:
             _logger.warning("[Telegram] Update sin message ni callback. Ignorado.")
@@ -100,7 +117,7 @@ class VelardiTelegramMixin(models.AbstractModel):
         
         if telegram_user.state == 'awaiting_email':
             email = self._extract_email(text)
-            
+          
             has_error = not email or not self._is_valid_email(email)
 
             if has_error:
@@ -129,6 +146,7 @@ class VelardiTelegramMixin(models.AbstractModel):
     
     def _handle_command(self, bot_config, telegram_user, chat_id, text, message):
         """Handle explicit commands (/start, /menu, etc.)."""
+        _logger.warning("[Telegram] Handle explicit commands.")
         if text == '/start':
             # TODO : REvisar
             # remover el menu
@@ -144,6 +162,13 @@ class VelardiTelegramMixin(models.AbstractModel):
 
             # requests.post(url, json=payload, timeout=0.5)
             self._send_welcome_message(bot_config, chat_id, message)
+            if not bot_config.enable_email_registration:
+                telegram_user.write({
+                    'state': 'registered',
+                    'active': True,
+                    'state_updated': fields.Datetime.now(),
+                })
+               
 
         elif text == '/menu':
             self._send_welcome_message_menu(
@@ -181,6 +206,7 @@ class VelardiTelegramMixin(models.AbstractModel):
 
         else:
             # Comando personalizado → delegar
+            _logger.warning("[Telegram] Comando personalizado → delegar.")
             self._process_custom_command(bot_config, chat_id, text)
 
     def _save_notification(self, update_data, update_type):
@@ -261,18 +287,21 @@ class VelardiTelegramMixin(models.AbstractModel):
         success_message = success_message.replace("{{last_name}}", telegram_user.last_name)
         success_message = success_message.replace("{{email}}", telegram_user.email or '')
         success_message = success_message.replace("{{telegram_username}}", telegram_user.telegram_username or '')
-
-        if bot_config.welcome_message_type == 'text':
+        _logger.warning("\n[Telegram]== _send_success_message type = %s", bot_config.welcome_message_type )
+        if bot_config.successful_registration_message_type == 'text':
             if linked_to:
                 success_message = f"{success_message}\n\n<i>👤 Linked to: <b>{linked_to}</b></i>"
             bot_config.send_message(success_message, chat_id)
         else:
+            _logger.warning("\n[Telegram]== success_message (289) ", success_message)
             payload = json.loads(success_message)
+            _logger.warning("\n[Telegram]== success_message  = %s", payload)
             if linked_to:
                 payload['text'] = payload.get('text', '') + f"\n\n<i>👤 Linked to: <b>{linked_to}</b></i>"
             bot_config.send_message('', chat_id, payload)
 
     def _handle_callback(self, bot_config, update_data, telegram_user):
+        _logger.info("===============_handle_callback=========================")
         update_id = update_data.get("update_id")              # Para logs / idempotencia
         callback = update_data.get("callback_query")  
         callback_id = callback["id"]                          # Para answerCallbackQuery
@@ -506,10 +535,9 @@ class VelardiTelegramMixin(models.AbstractModel):
         
         _logger.info(f"[Telegram] {type(result)}")
         _logger.info(f"[Telegram] {result}")
-        if result.get("ok"):
-            new_msg_id = str(result["result"]["message_id"])
-            _logger.info(f"new_msg_id {new_msg_id}")
-            telegram_user.write({'awaiting_message_id': new_msg_id})
+        if result:
+            _logger.info(f"new_msg_id {result}")
+            telegram_user.write({'awaiting_message_id': result})
 
     def _send_phone_request_message(self, bot_config, chat_id, telegram_user, message_id):
         """Send phone request message with force_reply."""
@@ -540,10 +568,9 @@ class VelardiTelegramMixin(models.AbstractModel):
 
         _logger.info(f"[Telegram] {type(result)}")
         _logger.info(f"[Telegram] {result}")
-        if result.get("ok"):
-            new_msg_id = str(result["result"]["message_id"])
-            _logger.info(f"new_msg_id {new_msg_id}")
-            telegram_user.write({'awaiting_message_id': new_msg_id})
+        if result:
+            _logger.info(f"new_msg_id {result}")
+            telegram_user.write({'awaiting_message_id': result})
 
     def _extract_bot_command(self, payload):
         """
@@ -606,7 +633,8 @@ class VelardiTelegramMixin(models.AbstractModel):
                 ('config_id', '=', bot_config.id),
                 ('id', '!=', telegram_user.id),
             ], limit=1)
-
+            _logger.info("\n[Telegram] existente: %s", existente)
+           
             if existente:
                 self._send_error_message(bot_config, telegram_user, chat_id)
                 return
@@ -614,6 +642,7 @@ class VelardiTelegramMixin(models.AbstractModel):
             state_user = 'registered' if not bot_config.enable_phone_registration else 'awaiting_phone'
             active_user = True if not bot_config.enable_phone_registration else False
             # 5. Guardar email y cambiar estado
+            _logger.info(" [Telegram] Guardando email y cambiar estado {state_user}")
             telegram_user.write({
                 'email': email,
                 'state': state_user,
@@ -627,6 +656,7 @@ class VelardiTelegramMixin(models.AbstractModel):
 
             if not bot_config.enable_phone_registration:
                 linked_to = odoo_user.name if odoo_user else None
+                _logger.info(" [Telegram] _send_success_message")
                 self._send_success_message(bot_config, telegram_user, chat_id, linked_to)
             else:
                 self._send_phone_request_message(bot_config, chat_id, telegram_user, 'message_id')
@@ -636,6 +666,7 @@ class VelardiTelegramMixin(models.AbstractModel):
                 chat_id, email, odoo_user.name if odoo_user else "ninguno"
             )
         except Exception as e:
+            _logger.info("\n[Telegram] error : %s", e)
             telegram_user.write({
                 'email': email,
                 'state': 'awaiting_email',
@@ -652,6 +683,7 @@ class VelardiTelegramMixin(models.AbstractModel):
                 telegram_user.write({
                         'phone_number': phone_number,
                         'state': 'registered',
+                        'active':True,  
                         'state_updated': fields.Datetime.now(),
                 })
                 linked_to = telegram_user.email if telegram_user.email else None

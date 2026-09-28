@@ -35,13 +35,14 @@ class VelardiTelegramCommand(models.Model):
     _name = "velardi.telegram.command"
     _description = "Telegram Command"
     _order = "create_date desc"
-    command = fields.Char(string='Command', required=True, help='Sin la barra /')
-    description = fields.Char()
+    command = fields.Char(string="Command", required=True, help="Command name without the '/'")
+
+    description = fields.Char(required=True, help="Indicate which action or code the bot executes.")
     bot_config_id = fields.Many2one(
             "velardi.telegram.config", string="Bot Configuration",
             required=True, ondelete="cascade")
     active = fields.Boolean(default=True)
-    active_bot = fields.Boolean(string='Register in BOT', default=False)
+    active_bot = fields.Boolean(string="Register in BOT", default=False)
     code = fields.Text(string='Python Code', groups='base.group_system',
                         default=DEFAULT_PYTHON_CODE,
                         help="Write Python code that the action will execute. Some variables are "
@@ -54,27 +55,50 @@ class VelardiTelegramCommand(models.Model):
     def action_register_commands(self):
         """Registra un command en Telegram-Bot."""
         self.ensure_one()
+
+        cmd_name = self.command.replace("/", "").strip().lower()
+
         # 1. Leer los comandos actuales directamente de Telegram
-        response = requests.get(
-            f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/getMyCommands",
-            timeout=10,
-        )
-        response.raise_for_status()
-        actuales = response.json().get("result", [])
-        _logger.info("Comando '%s' actuales", actuales)
+        try:
+            response = requests.get(
+                f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/getMyCommands",
+                timeout=10,
+            )
+            response.raise_for_status()
+            actuales = response.json().get("result", [])
+            _logger.info("Comandos actuales en Telegram: %s", actuales)
+        except requests.exceptions.RequestException as e:
+            _logger.error("[Telegram] Error获取 comandos: %s", e)
+            raise UserError(_("Error fetching commands from Telegram: %s") % e)
+
         # 2. Evitar duplicados
-        actuales = [c for c in actuales if c["command"] != self.command.replace("/","")]
-        actuales.append({"command": self.command, "description": self.description})
-        _logger.info(actuales)
-        # 3. Enviar la lista completa
-        response = requests.post(
-            f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/setMyCommands",
-            json={"commands": actuales},
-            timeout=10,
-        )
-        response.raise_for_status()
-        res_data = response.json() if response.content else {}
-        _logger.info("Comando '%s' registrado exitosamente en Telegram.", self.command)
+        actuales = [c for c in actuales if c["command"] != cmd_name]
+        actuales.append({"command": cmd_name, "description": self.description})
+
+        # 3. Telegram limita a 100 comandos
+        if len(actuales) > 100:
+            raise UserError(_("Telegram allows a maximum of 100 commands."))
+
+        _logger.info("[Telegram] Enviando comandos: %s", actuales)
+
+        # 4. Enviar la lista completa
+        try:
+            response = requests.post(
+                f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/setMyCommands",
+                json={"commands": actuales},
+                timeout=10,
+            )
+            res_data = response.json() if response.content else {}
+            if not res_data.get("ok"):
+                error_desc = res_data.get("description", response.text)
+                _logger.error("[Telegram] setMyCommands error: %s", error_desc)
+                raise UserError(_("Telegram error: %s") % error_desc)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            _logger.error("[Telegram] Error registrando comando: %s", e)
+            raise UserError(_("Error registering command: %s") % e)
+
+        _logger.info("[Telegram] Comando '%s' registrado exitosamente.", cmd_name)
         self.active_bot = True
 
         return {
@@ -82,7 +106,7 @@ class VelardiTelegramCommand(models.Model):
             'tag': 'display_notification',
             'params': {
                 'title': _('Telegram Commands'),
-                'message': _("Command '%s' registered successfully.") % self.command,
+                'message': _("Command '/%s' registered successfully.") % cmd_name,
                 'type': 'success',
                 'sticky': False,
                 'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},

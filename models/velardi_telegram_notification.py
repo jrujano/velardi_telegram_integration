@@ -62,6 +62,7 @@ class VelardiTelegramNotification(models.Model):
         readonly=True,
         help="Representación formateada del JSON del cuerpo de la notificación."
     )
+    notification_answered_option = fields.Char("Answered option")
 
     @api.depends('notification_body')
     def _compute_notification_body_formatted(self):

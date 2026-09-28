@@ -27,7 +27,7 @@
                         <group>
                             <field name="command"/>
                             <field name="bot_config_id"/>
-                            <field name="description"/>
+                            <field name="description" placeholder="Indicate which action or code the bot executes."/>
                             <field name="active" widget="boolean_toggle"/>
                             <field name="active_bot" widget="boolean_toggle" readonly="1"/>
                         </group>
@@ -130,5 +130,6 @@ else:
         <field name="name">Telegram Commands</field>
         <field name="res_model">velardi.telegram.command</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
     </record>
 </odoo>

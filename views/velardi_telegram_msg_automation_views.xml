@@ -52,6 +52,22 @@
                                    placeholder="Enter Python code here."/>
                         </page>
                         <page string="Help" name="help"
+                              invisible="type != 'template'">
+                            <p>The following variables can be used:</p>
+                            
+                            <div>
+                                <p>Example of template:</p>
+                                <pre style='white-space: pre-wrap'>🔔 New Order
+📋 Order: {name}
+👤 Customer: {partner_id.name}
+💰 Total: {amount_total}
+📦 Items:
+{% for line in order_line %}
+- {line.product_id.name} x {line.product_uom_qty} = {line.price_subtotal}
+{% endfor %}</pre>
+                            </div>
+                        </page>
+                        <page string="Help" name="help"
                               invisible="type != 'code'">
                             <p>The following variables can be used:</p>
                             <ul>
@@ -161,5 +177,6 @@ if tareas_creadas:
         <field name="name">Telegram Automations</field>
         <field name="res_model">velardi.telegram.msg.automation</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
     </record>
 </odoo>
