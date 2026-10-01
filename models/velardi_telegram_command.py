@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import requests
 import logging
+from odoo.exceptions import UserError
 from odoo import _, api, fields, models
 
 
@@ -36,7 +36,10 @@ class VelardiTelegramCommand(models.Model):
     _description = "Telegram Command"
     _order = "create_date desc"
     command = fields.Char(string="Command", required=True, help="Command name without the '/'")
-
+    type_code = fields.Selection(
+        [('command', 'Command'), ('callback', 'Callback')],
+        string="Type", default='command', required=True,
+        help="Command: triggered by /command. Callback: triggered by inline keyboard button.")
     description = fields.Char(required=True, help="Indicate which action or code the bot executes.")
     bot_config_id = fields.Many2one(
             "velardi.telegram.config", string="Bot Configuration",
@@ -60,14 +63,9 @@ class VelardiTelegramCommand(models.Model):
 
         # 1. Leer los comandos actuales directamente de Telegram
         try:
-            response = requests.get(
-                f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/getMyCommands",
-                timeout=10,
-            )
-            response.raise_for_status()
-            actuales = response.json().get("result", [])
+            actuales = self.bot_config_id.get_my_commands()
             _logger.info("Comandos actuales en Telegram: %s", actuales)
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             _logger.error("[Telegram] Error获取 comandos: %s", e)
             raise UserError(_("Error fetching commands from Telegram: %s") % e)
 
@@ -83,18 +81,14 @@ class VelardiTelegramCommand(models.Model):
 
         # 4. Enviar la lista completa
         try:
-            response = requests.post(
-                f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/setMyCommands",
-                json={"commands": actuales},
-                timeout=10,
-            )
-            res_data = response.json() if response.content else {}
+            res_data = self.bot_config_id.set_my_commands(actuales)
             if not res_data.get("ok"):
-                error_desc = res_data.get("description", response.text)
+                error_desc = res_data.get("description", "Unknown error")
                 _logger.error("[Telegram] setMyCommands error: %s", error_desc)
                 raise UserError(_("Telegram error: %s") % error_desc)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except UserError:
+            raise
+        except Exception as e:
             _logger.error("[Telegram] Error registrando comando: %s", e)
             raise UserError(_("Error registering command: %s") % e)
 
@@ -118,12 +112,7 @@ class VelardiTelegramCommand(models.Model):
         self.ensure_one()
         command = self.command
 
-        r = requests.get(
-            f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/getMyCommands",
-            timeout=10,
-        )
-        r.raise_for_status()
-        actuales = r.json().get("result", [])
+        actuales = self.bot_config_id.get_my_commands()
         _logger.warning(command)
         _logger.info(actuales)
         # Filtrar el que queremos eliminar
@@ -145,19 +134,10 @@ class VelardiTelegramCommand(models.Model):
             }
 
         if nuevos:
-            r = requests.post(
-                f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/setMyCommands",
-                json={"commands": nuevos},
-                timeout=10,
-            )
-            r.raise_for_status()
+            self.bot_config_id.set_my_commands(nuevos)
         else:
             # Si ya no queda ninguno, borrar todos
-            requests.post(
-                f"https://api.telegram.org/bot{self.bot_config_id.bot_token}/deleteMyCommands",
-                json={},
-                timeout=10,
-            )
+            self.bot_config_id.delete_my_commands()
         self.active_bot = False
 
         return {

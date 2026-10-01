@@ -321,9 +321,10 @@ class VelardiTelegramMsgAutomation(models.Model):
                         {self.code}
                         """
                     message = safe_eval(self.code, localdict, mode="exec", nocopy=True)
-                _logger.info("[Telegram] Sending for %s(%s): %s",
-                              record._name, record.id, message[:200] if message else "EMPTY")
+                
                 if message:
+                    _logger.info("[Telegram] Sending for %s(%s): %s",
+                                                  record._name, record.id, message[:200] if message else "EMPTY")
                     self.config_id.send_message(message, chat_id=self.chat_id or None)
                     _logger.info("[Telegram] Sent OK for %s(%s)", record._name, record.id)
             except Exception as exc:

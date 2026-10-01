@@ -26,6 +26,7 @@
                     <group>
                         <group>
                             <field name="command"/>
+                            <field name="type_code"/>
                             <field name="bot_config_id"/>
                             <field name="description" placeholder="Indicate which action or code the bot executes."/>
                             <field name="active" widget="boolean_toggle"/>
@@ -50,6 +51,7 @@
                                     <ul>
                                         <li><code>bot_config</code>: Bot configuration record (velardi.telegram.config)</li>
                                         <li><code>bot_token</code>: Telegram bot token (from bot_config.bot_token)</li>
+                                        <li><code>update_data</code>: Telegram update_data </li>
                                     </ul>
                                 </group>
                                 <group string="Logging">
@@ -79,6 +81,12 @@
                                 <group string="Example">
                                     <p>Example: Send a message via the bot</p>
                                     <pre style='white-space: pre-wrap'>
+update_id = update_data.get("update_id")              # Para logs / idempotencia
+callback = update_data.get("callback_query")  
+callback_id = callback["id"]                          # Para answerCallbackQuery
+message_id = callback["message"]["message_id"]        # Para editar el mensaje
+chat_id = str(callback["message"]["chat"]["id"])
+data = callback["data"]
 proyecto = env['project.project'].sudo().search([('name', '=', 'Proyectos Web')], limit=1)
 if proyecto:
     log(f"Proyecto encontrado: {proyecto.name} (ID: {proyecto.id})")
@@ -120,6 +128,7 @@ else:
         <field name="arch" type="xml">
             <list>
                 <field name="command"/>
+                <field name="type_code"/>
                 <field name="bot_config_id"/>
                 <field name="active"/>
                 <field name="active_bot" readonly="1"/>

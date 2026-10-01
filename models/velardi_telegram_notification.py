@@ -62,7 +62,20 @@ class VelardiTelegramNotification(models.Model):
         readonly=True,
         help="Representación formateada del JSON del cuerpo de la notificación."
     )
-    notification_answered_option = fields.Char("Answered option")
+    notification_answered_option = fields.Char(
+        string='Answered Option',
+        help='Telegram interaction option that was answered by the user.'
+    )
+
+    date_notification_answered_option = fields.Datetime(
+        string='Telegram Interaction Answer Time',
+        help='Date and time when the user answered the Telegram interaction.'
+    )
+
+    answered_chat_id = fields.Char(
+        string='Telegram Chat ID',
+        help='User or chat ID returned by the Telegram API.'
+    )
 
     @api.depends('notification_body')
     def _compute_notification_body_formatted(self):

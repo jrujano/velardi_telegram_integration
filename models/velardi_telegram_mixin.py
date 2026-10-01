@@ -3,7 +3,6 @@ import json
 import re
 import time
 import logging
-import requests
 from collections import defaultdict
 from datetime import datetime, date, timezone, timedelta
 from dateutil.parser import parse as parse_date 
@@ -105,7 +104,7 @@ class VelardiTelegramMixin(models.AbstractModel):
             if telegram_user.state == 'registered' or not bot_config.enable_email_registration:
                 _logger.info("\n[Telegram] sending callback_query")
                 return self._handle_callback(bot_config, update_data, telegram_user)
-            elif telegram_user.state in['new']  and bot_config.enable_email_registration:
+            elif telegram_user.state in['new'] and bot_config.enable_email_registration:
                 return self._handle_callback(bot_config, update_data, telegram_user)    
             
 
@@ -301,117 +300,76 @@ class VelardiTelegramMixin(models.AbstractModel):
             bot_config.send_message('', chat_id, payload)
 
     def _handle_callback(self, bot_config, update_data, telegram_user):
-        _logger.info("===============_handle_callback=========================")
         update_id = update_data.get("update_id")              # Para logs / idempotencia
         callback = update_data.get("callback_query")  
         callback_id = callback["id"]                          # Para answerCallbackQuery
         message_id = callback["message"]["message_id"]        # Para editar el mensaje
         chat_id = str(callback["message"]["chat"]["id"])
         data = callback["data"]
-        
+        is_media = 'photo' in callback["message"] or 'video' in callback["message"] or 'document' in callback["message"]
+        original_caption = callback["message"].get('caption') or callback["message"].get('text') or ''
+
+
         _logger.info(
             "Evento %s → callback %s, mensaje %s, chat %s, data '%s'",
             update_id, callback_id, message_id, chat_id, data
         )
-        
-        # 1. Responder al callback (obligatorio)
-        requests.post(
-            f"https://api.telegram.org/bot{bot_config.bot_token}/answerCallbackQuery",
-            json={"callback_query_id": callback_id},
-            timeout=10,)
+
+        # Responder al callback (obligatorio)
+        bot_config.answer_callback_query(callback_id)
+
+        # Guardar respuesta del usuario en la notificación
+        from_user = callback.get("from", {})
+        answered_chat_id = str(from_user.get("id", ""))
+        notification = self.env['velardi.telegram.notification'].sudo().search([
+            ('message_id', '=', str(message_id)),
+            ('notification_type', '=', 'outgoing'),
+        ], order='create_date desc', limit=1)
+        if notification:
+            notification.write({
+                'notification_answered_option': data,
+                'date_notification_answered_option': fields.Datetime.now(),
+                'answered_chat_id': answered_chat_id,
+            })
 
         if data == "start_registration":
             self._start_registration(bot_config, telegram_user, chat_id, message_id)
         
+        else:
+            parts = data.split(':')
+            action = parts[0]
+            
+            if action == 'approve':
+                callback_manager = self.env['velardi.telegram.command'].search([
+                        ("command", "=", "approve"),
+                        ("type_code", "=", "callback"),
+                    ])
+                if callback_manager:
+                    _logger.info("\n[Telegram] se consiguio intruccion callback")
+                    self._process_custom_command(bot_config, chat_id, action, update_data=update_data)
 
+            elif action == 'reject':
+        
+                result_text = "❌ =====<b>  Pedido No Empacado.  </b>====="
+                
+                self._process_custom_command(bot_config, chat_id, action, update_data=update_data)
+                
         
     # TODO: REvisar comportamiento
     def _edit_message(self, bot_config, chat_id, message_id, texto, opciones, force_reply=False, selective=False):
         """Edita el mensaje existente en lugar de enviar uno nuevo."""
-        payload = {
-            "chat_id": chat_id,
-            "message_id": message_id,
-            "text": texto,
-            "parse_mode": "HTML",
-            "reply_markup": {"inline_keyboard": opciones, "force_reply": force_reply,"selective":selective},
-        }
-        # requests.post(
-        #     f"https://api.telegram.org/bot{bot_config.bot_token}/editMessageText",
-        #     json=payload,
-        #     timeout=10,
-        # )
-
-        requests.post(
-                    f"https://api.telegram.org/bot{bot_config.bot_token}/editMessageReplyMarkup",
-                    json=payload,
-                    timeout=10,
-                )
+        reply_markup = {"inline_keyboard": opciones, "force_reply": force_reply, "selective": selective}
+        bot_config.edit_message_reply_markup(chat_id, message_id, reply_markup)
         
     
-    def _send_welcome_message_menu(self, bot_config, chat_id, text):
-        payload = {
-               
-                "parse_mode": "HTML",
-                "reply_markup": {
-                    "inline_keyboard": [
-                        [
-                            {"text": "📋 View Tasks", "callback_data": "menu_tareas"},
-                            {"text": "📊 Reports", "callback_data": "menu_reportes"},
-                        ],
-                        [
-                            {"text": "⚙️ Settings", "callback_data": "menu_config"},
-                        ],
-                        [
-                            {"text": "❌ Close Menu", "callback_data": "menu_cerrar"},
-                        ],
-                    ]
-                },
-            }
-        bot_config.send_message(text, chat_id, payload)
-
-    def _send_welcome_message_replykeyboard(self, bot_config, chat_id, text):
-        payload = {
-            "reply_markup": {
-                "keyboard": [
-                    [{"text": "📋 View Tasks"}, {"text": "📊 Reports"}],
-                    [{"text": "⚙️ Settings"}],
-                    [{"text": "❌ Cancel"}],
-                ],
-                "resize_keyboard": True,        # Ajusta el tamaño al contenido
-                "one_time_keyboard": True,      # Se oculta tras usarlo
-                "input_field_placeholder": "Choose an option...",
-            },
-        }
-        bot_config.send_message(text, chat_id, payload)
-
-    def _send_welcome_message_inlinekeyboard(self, bot_config, chat_id, text):
-        payload = {
-            "chat_id": chat_id,
-            "text": "🏠 <b>Main Menu</b>\nChoose an option:",
-            "parse_mode": "HTML",
-            "reply_markup": {
-                "inline_keyboard": [
-                    [
-                        {"text": "📋 View Tasks", "callback_data": "ver_tareas"},
-                        {"text": "📊 Reports", "callback_data": "ver_reportes"},
-                    ],
-                    [
-                        {"text": "⚙️ Settings", "callback_data": "config"},
-                    ],
-                    [
-                        {"text": "🌐 Open Website", "url": "https://ejemplo.com"},
-                    ],
-                ]
-            },
-        }
-        bot_config.send_message(text, chat_id, payload)
-
-    def _process_custom_command(self, bot_config, chat_id, text, user=None):
-        text=text.replace("/","")
+    def _process_custom_command(self, bot_config, chat_id, action, user=None, update_data ={}):
+        action=action.replace("/","")
         # user = user or self.env.user
         user = self.env['res.users'].sudo().search([('id', '=', 2)], limit=1)
+        
         if not user:
             user = self.env.ref('base.user_admin')
+        
         user_env = self.env(user=user)
         self_user = self.with_env(user_env)
         
@@ -434,9 +392,10 @@ class VelardiTelegramMixin(models.AbstractModel):
                 'UserError': UserError,
                 'requests': wrapped_requests,
                 'html_escape':html_escape,
+                'update_data': update_data,
             }
         # _logger.info(bot_config)
-        menu_cmd = bot_config.command_ids.filtered(lambda c: c.command == text)
+        menu_cmd = bot_config.command_ids.filtered(lambda c: c.command == action)
       
         if menu_cmd and menu_cmd.code:
             safe_eval(menu_cmd.code, localdict, mode="exec", nocopy=True)
@@ -509,14 +468,7 @@ class VelardiTelegramMixin(models.AbstractModel):
 
     def _start_registration(self, bot_config, telegram_user, chat_id, message_id):
         # 1. Quitar solo los botones (el texto queda igual)
-        requests.post(
-            f"https://api.telegram.org/bot{bot_config.bot_token}/editMessageText",
-            json={
-                "chat_id": chat_id,
-                "message_id": message_id,
-            },
-            timeout=10,
-        )
+        bot_config.edit_message_text(chat_id, message_id, '')
 
         # 2. Cambiar estado
         telegram_user.write({

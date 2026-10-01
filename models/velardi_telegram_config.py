@@ -234,7 +234,7 @@ class VelardiTelegramConfig(models.Model):
             payload: Complete Telegram API payload (overrides text and chat_id)
         """
         self.ensure_one()
-        _logger.warning("\n[Telegram]== send_message",)
+        _logger.info("\n[Telegram]== send_message",)
         if payload:
             final_payload = payload.copy()
             final_payload.setdefault('chat_id', chat_id or self.default_chat_id)
@@ -348,6 +348,162 @@ class VelardiTelegramConfig(models.Model):
         except Exception as exc:
             self.last_status = _("Error: %s") % exc
             raise UserError(_("Could not reach Telegram: %s") % exc)
+
+    def lock_inline_keyboard(self, chat_id, message_id,
+                            original_caption=None, result_text=None,
+                            parse_mode=None, is_media=True,  reply_markup=None):
+        """Lock inline keyboard on a message, keeping original content
+        and appending result text. Removes the keyboard by not sending
+        reply_markup.
+
+        Args:
+            chat_id: Telegram chat ID
+            message_id: Message ID to edit
+            original_caption: Original caption to preserve (for media)
+            result_text: Text to append as result
+            parse_mode: Parse mode (HTML, Markdown, etc.)
+            is_media: True for editMessageCaption, False for editMessageText
+        """
+        self.ensure_one()
+        KEEP_MARKUP = object()
+        url = f"https://api.telegram.org/bot{self.bot_token}"
+
+        if result_text:
+            base = original_caption or ''
+            new_content = f"{base}\n\n{result_text}" if base else result_text
+
+            if is_media:
+                payload = {
+                    'chat_id': chat_id,
+                    'message_id': message_id,
+                    'caption': new_content,
+                }
+                if reply_markup is not None:
+                    # Reemplazar el teclado por el que se pasa
+                    payload['reply_markup'] = reply_markup
+                if parse_mode:
+                    payload['parse_mode'] = parse_mode
+                response = requests.post(f"{url}/editMessageCaption", json=payload, timeout=10)
+            else:
+                payload = {
+                    'chat_id': chat_id,
+                    'message_id': message_id,
+                    'text': new_content,
+                }
+                if reply_markup is not None:
+                    # Reemplazar el teclado por el que se pasa
+                    payload['reply_markup'] = reply_markup
+                if parse_mode:
+                    payload['parse_mode'] = parse_mode
+                response = requests.post(f"{url}/editMessageText", json=payload, timeout=10)
+        else:
+            payload = {
+                'chat_id': chat_id,
+                'message_id': message_id,
+            }
+            if reply_markup is not None:
+                # Reemplazar el teclado por el que se pasa
+                payload['reply_markup'] = reply_markup
+            response = requests.post(f"{url}/editMessageReplyMarkup", json=payload, timeout=10)
+
+        res_data = response.json() if response.content else {}
+        if not res_data.get("ok"):
+            _logger.error("[Telegram] lock_inline_keyboard error: %s", res_data.get("description"))
+        return res_data
+
+    def answer_callback_query(self, callback_query_id):
+        """Answer a callback query from inline keyboard."""
+        self.ensure_one()
+        response = requests.post(
+            f"https://api.telegram.org/bot{self.bot_token}/answerCallbackQuery",
+            json={"callback_query_id": callback_query_id},
+            timeout=10,
+        )
+        res_data = response.json() if response.content else {}
+        if not res_data.get("ok"):
+            _logger.error("[Telegram] answerCallbackQuery error: %s", res_data.get("description"))
+        return res_data
+
+    def edit_message_text(self, chat_id, message_id, text, parse_mode=None,
+                          reply_markup=None):
+        """Edit a text message."""
+        self.ensure_one()
+        payload = {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": text,
+        }
+        if parse_mode:
+            payload["parse_mode"] = parse_mode
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        response = requests.post(
+            f"https://api.telegram.org/bot{self.bot_token}/editMessageText",
+            json=payload,
+            timeout=10,
+        )
+        res_data = response.json() if response.content else {}
+        if not res_data.get("ok"):
+            _logger.error("[Telegram] editMessageText error: %s", res_data.get("description"))
+        return res_data
+
+    def edit_message_reply_markup(self, chat_id, message_id, reply_markup=None):
+        """Edit the reply markup of a message."""
+        self.ensure_one()
+        payload = {
+            "chat_id": chat_id,
+            "message_id": message_id,
+        }
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        response = requests.post(
+            f"https://api.telegram.org/bot{self.bot_token}/editMessageReplyMarkup",
+            json=payload,
+            timeout=10,
+        )
+        res_data = response.json() if response.content else {}
+        if not res_data.get("ok"):
+            _logger.error("[Telegram] editMessageReplyMarkup error: %s", res_data.get("description"))
+        return res_data
+
+    def set_my_commands(self, commands):
+        """Set the bot's commands list.
+        Args:
+            commands: list of dicts [{"command": "start", "description": "..."}]
+        """
+        self.ensure_one()
+        response = requests.post(
+            f"https://api.telegram.org/bot{self.bot_token}/setMyCommands",
+            json={"commands": commands},
+            timeout=10,
+        )
+        res_data = response.json() if response.content else {}
+        if not res_data.get("ok"):
+            _logger.error("[Telegram] setMyCommands error: %s", res_data.get("description"))
+        return res_data
+
+    def delete_my_commands(self):
+        """Delete all bot commands."""
+        self.ensure_one()
+        response = requests.post(
+            f"https://api.telegram.org/bot{self.bot_token}/deleteMyCommands",
+            json={},
+            timeout=10,
+        )
+        res_data = response.json() if response.content else {}
+        if not res_data.get("ok"):
+            _logger.error("[Telegram] deleteMyCommands error: %s", res_data.get("description"))
+        return res_data
+
+    def get_my_commands(self):
+        """Get the bot's current commands list."""
+        self.ensure_one()
+        response = requests.get(
+            f"https://api.telegram.org/bot{self.bot_token}/getMyCommands",
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json().get("result", [])
 
     def action_send_test(self):
         self.ensure_one()

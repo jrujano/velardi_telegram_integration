@@ -7,7 +7,7 @@
 
     <menuitem id="velardi_telegram_menu_root" 
                   name="Velardi Telegram" 
-                  parent="base.menu_administration" 
+                  parent="velardi_telegram_root" 
                   sequence="100"/>
 
     <menuitem id="velardi_telegram_menu_automation"

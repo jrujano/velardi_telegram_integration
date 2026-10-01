@@ -40,6 +40,11 @@
                             <field name="notification_type" readonly="1"/>
                             <field name="date_notification" readonly="1"/>
                         </group>
+                        <group string="Respuesta">
+                            <field name="answered_chat_id" readonly="1"/>
+                            <field name="notification_answered_option" readonly="1"/>
+                            <field name="date_notification_answered_option" readonly="1"/>
+                        </group>
                     </group>
                     <group string="Body">
                             <field name="notification_body_formatted" widget="text" readonly="1"/>
@@ -68,9 +73,11 @@
                 <field name="chat_type"/>
                 <field name="update_type"/>
                 <field name="text" widget="text"/>
+                <field name="notification_answered_option"/>
+                <field name="date_notification_answered_option"/>
+                <field name="answered_chat_id"/>
                 <field name="notification_body_formatted" invisible="1"/>
                 <field name="notification_body" invisible="1"/>
-                
             </list>
         </field>
     </record>
